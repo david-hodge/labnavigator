@@ -1,0 +1,6 @@
+---
+title: "Labby 2"
+output: html_document
+---
+
+# Lab 2

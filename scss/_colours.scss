@@ -1,0 +1,36 @@
+/*-- scss:defaults --*/
+
+// University of Glasgow colour base-palette: 
+
+$university-blue: #003865 !default;
+$burgundy:        #7d2239 !default;
+$cobalt:          #0075b0 !default;
+$lavender:        #5b4d94 !default;
+$leaf:            #00843d !default;
+$moss:            #385a4f !default;
+$pillarbox:       #b30c00 !default;
+$rust:            #be4d00 !default;
+$sandstone:       #7a6855 !default;
+$sky-blue:        #005398 !default;
+$slate:           #4f5961 !default;
+$thistle:         #951272 !default;
+
+// Secondary colours
+
+$turquoise:     #00b5d1;
+$rose:          #b06c96;
+$pumpkin:       #ffb948;
+$sunshine:      #ffdc36;
+$mocha:         #aa8066;
+
+// Template colour styles
+
+$navbar-bg: $university-blue;
+$navbar-fg: #ffffff;
+$navbar-hl: #ffffff;
+$callout-color-note: $university-blue;
+$callout-color-tip: $leaf;
+$callout-color-caution: $rust;
+$callout-color-warning: $pillarbox;
+$callout-color-important: $cobalt;
+

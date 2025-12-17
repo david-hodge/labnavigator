@@ -1,0 +1,25 @@
+/*-- scss:uses --*/
+
+@use "colours" as uog; //UoG colour branding
+
+/*-- scss:defaults --*/
+
+// Dark mode theme
+
+$primary: uog.$university-blue;   // background for menu links / headings
+$secondary: uog.$cobalt; // corner lines
+
+
+$active-link: lighten($secondary, 60%);
+
+// Dark mode defaults
+$body-bg: #111 !default;     // background for body
+$body-color: #fff !default;  // text color
+
+// Typography
+$headings-color: #fff !default;
+$link-color: #fff !default;
+$link-hover-color: $secondary !default;
+
+// Borders
+$border-color: #333 !default;

@@ -1,0 +1,25 @@
+project:
+  type: website
+  
+website:
+  title: "Advanced Predictive Models - STATS1234"
+  search: false
+  navbar:
+    logo: apm.png
+    logo-alt: "APM logo"
+    right:
+      - text: First Lab
+        href: Lab1.qmd
+      - text: Second Lab
+        href: Lab2.qmd
+      - text: Third Lab
+        href: Lab3.qmd
+      - text: Fourth Lab
+        href: Lab4.qmd
+
+format:
+  html:
+    theme:
+      light: ["scss/nav.scss", "scss/light.scss"]
+      dark:  ["scss/nav.scss", "scss/dark.scss"]
+    respect-user-color-scheme: true

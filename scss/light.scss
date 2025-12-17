@@ -1,0 +1,13 @@
+/*-- scss:uses --*/
+
+@use "colours" as uog; //UoG colour branding
+
+/*-- scss:defaults --*/
+
+// Light mode theme
+
+$primary: uog.$cobalt;   // background for menu links / headings
+$secondary: uog.$university-blue; 
+
+$active-link: #eeeeff;
+

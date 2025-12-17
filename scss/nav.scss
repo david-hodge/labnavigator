@@ -1,0 +1,37 @@
+/*-- scss:defaults --*/
+
+/* Navbar background */
+.navbar {
+  background-color: var(--bs-primary) !important;
+}
+
+/* Navbar links */
+.navbar .nav-link {
+  color: #fff !important;  /* force white links */
+}
+
+/* Hovered links */
+.navbar .nav-link:hover {
+  color: $active-link !important;
+}
+
+/* Active/current link */
+.navbar .nav-link.active, 
+.navbar .nav-link.show {
+  color: $active-link !important;
+  font-weight: bold;  
+}
+
+/* Logo size */
+.navbar-brand img {
+  max-height: 3rem;   /* scales with navbar */
+  width: auto;
+  flex-shrink: 0;
+}
+
+
+@media (max-width: 650px) {
+  .navbar-brand .navbar-title {
+    display: none; // Hide title on small screens (keep logo)
+  }
+}

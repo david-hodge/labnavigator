@@ -1,0 +1,55 @@
+<!-- Custom logo SVG -->
+<div class="navbar-logo">
+    <svg xmlns="http://www.w3.org/2000/svg"
+       width="120" height="120" viewBox="0 0 120 120"
+       role="img" aria-label="Advanced Predictive Models logo">
+    <defs>
+      <style>
+        svg { display:block; }
+        .bg { fill: var(--bs-primary); }
+        .tri { fill: var(--bs-secondary); }
+        .tri-line { stroke: var(--bs-dark); stroke-width:2.4; stroke-linecap:round; }
+        @media (prefers-color-scheme: dark) {
+          .tri-line { stroke: var(--bs-light); }
+        }
+        .word { font-family: 'Roboto Condensed', sans-serif; fill:#fff; font-weight:600; font-size:14px; text-anchor:start; }
+        .word tspan.initial { font-weight:800; font-size:24px; }
+      </style>
+    </defs>
+
+    <rect class="bg" x="0" y="0" width="120" height="120" rx="4" ry="4"/>
+    <!-- corners and lines -->
+    <g transform="translate(0,0)">
+      <polygon class="tri" points="0,0 44,0 0,44"/>
+      <line class="tri-line" x1="6" y1="38" x2="38" y2="6"/>
+    </g>
+    <g transform="translate(120,0) scale(-1,1)">
+      <polygon class="tri" points="0,0 44,0 0,44"/>
+      <line class="tri-line" x1="6" y1="38" x2="38" y2="6"/>
+    </g>
+    <g transform="translate(120,120) scale(-1,-1)">
+      <polygon class="tri" points="0,0 44,0 0,44"/>
+      <line class="tri-line" x1="6" y1="38" x2="38" y2="6"/>
+    </g>
+    <g transform="translate(0,120) scale(1,-1)">
+      <polygon class="tri" points="0,0 44,0 0,44"/>
+      <line class="tri-line" x1="6" y1="38" x2="38" y2="6"/>
+    </g>
+
+    <!-- text -->
+    <text x="28.5" y="40" class="word"><tspan class="initial">A</tspan><tspan dx="-3" dy="0.5">dvanced</tspan></text>
+    <text x="28.5" y="67" class="word"><tspan class="initial">P</tspan><tspan dx="-5" dy="0.5">redictive</tspan></text>
+    <text x="28.5" y="94" class="word"><tspan class="initial">M</tspan><tspan dx="-3" dy="0.5">odels</tspan></text>
+  </svg>
+</div>
+
+<!-- Divider -->
+<hr class="navbar-divider">
+
+<!-- Hard-coded Lab links -->
+<nav class="lab-links">
+  <a href="Lab1.html">Lab1</a>
+  <a href="Lab2.html">Lab2</a>
+  <a href="Lab3.html">Lab3</a>
+  <a href="Lab4.html">Lab4</a>
+</nav>
