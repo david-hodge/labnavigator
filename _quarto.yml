@@ -20,6 +20,6 @@ website:
 format:
   html:
     theme:
-      light: ["scss/nav.scss", "scss/light.scss"]
-      dark:  ["scss/nav.scss", "scss/dark.scss"]
+      light: ["scss/nav.scss", "scss/light.scss", "scss/questions.scss"]
+      dark:  ["scss/nav.scss", "scss/dark.scss",  "scss/questions.scss"]
     respect-user-color-scheme: true

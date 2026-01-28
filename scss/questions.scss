@@ -1,0 +1,30 @@
+/*-- scss:defaults --*/
+
+/*-- css:defaults --*/
+
+.question h2, .answer h2 { // Size of "Question 1" text
+  font-size: 1.35em;
+}
+
+.question-hr { // End of question divider line
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5); // semi-transparent dark line
+  width: 50%;
+  margin: auto; // Centralized
+  margin-bottom: 1rem;
+}
+
+@counter-style lower-alpha { /* Change the numbering style to (a), (b) etc.. from a. b. etc... */
+  system: alphabetical;
+  symbols: '\61' '\62' '\63' '\64' '\65' '\66' '\67' '\68' '\69' '\6A' '\6B' '\6C' '\6D' '\6E' '\6F' '\70' '\71' '\72' '\73' '\74' '\75' '\76' '\77' '\78' '\79' '\7A';
+  suffix: ') ';
+  prefix: '(';
+}
+
+@counter-style lower-roman { /* Change the numbering style to (a), (b) etc.. from a. b. etc... */
+  system: additive;
+  range: 1 20;
+  additive-symbols: 10 x, 9 ix, 5 v, 4 iv, 1 i;
+  suffix: ') ';
+  prefix: '(';
+}
