@@ -15,6 +15,13 @@ Hello
 
 Formulate, by hand, the model used in the medical school admissions example as a GLM.
 
+You should identify:
+
++ The random component
++ The systematic component
++ The link function
++ Identify your named coefficients with data covariates
+
 :::
 <!-- end of Task -->
 
@@ -29,37 +36,61 @@ Systematic component: $\beta_0+\beta_1 x_i$ where $x_i$ is the $i$th applicant's
 Link function: $g(p_i)=\log \left(\dfrac{p_i}{1-p_i} \right)$ (logit link)
 
 Equation of the GLM: $$\log \left(\dfrac{p_i}{1-p_i} \right)=\beta_0+\beta_1 x_i.$$ 
+
+Notation: $\beta_0$ will be the intercept and $\beta_1$ the coefficient on each student's GPA.
+
 ::::
 <!-- end of Answer -->
-
-```{r}
-library(Stat2Data)
-library(ggplot2)
-data(MedGPA)
-med.glm <- glm(Acceptance ~ GPA, data = MedGPA, family = binomial)
-```
-
 
 :::{.question}
 
 ## Question
 
-Predict the acceptance probability for an applicant with a GPA of (i) 2.5, (ii) 3 (iii) 4. First do this "by hand" using the regression equation, then in R using the `predict()` function.
+Using this code (taken from the notes) to load the GPA dataset,
 
-*Hint: The* `predict()` *function will return values on the linear predictor scale unless you specify* `type='response'` *which returns probabilities instead.*
+```{r}
+library(Stat2Data)
+library(ggplot2)
+data(MedGPA)
+head(MedGPA)
+```
+
+(a) Type the code to fit a logistic regression model to this data to predict `Acceptance` from just `GPA`, saving the result into a variable called `med.gpa`
+(b) Predict the acceptance probability for an applicant with a GPA of
+    (i) 2.5 
+    (ii) 3 
+    (iii) 4 
+
+    First do this "by hand" using the regression equation, then in R using the `predict()` function. To use `predict()` a helpful shortcut can be to create a simple data.frame with three students in.
+
+    *Hint*: The `predict()` function will return values on the linear predictor scale unless you use the `type` parameter.
+
+(c) Select two or three further covariates from the data and fit a logistic regression with these additional covariates. Comment on your result.
+
 :::
-<!-- end of Task -->
+<!-- end of question -->
 
 ::::{.answer}
 
-## Answer X
+## Answer
 
+(a) 
+```{r}
+med.glm <- glm(Acceptance ~ GPA, data = MedGPA, family = binomial)
+```
+
+(b)
 In the *GPA and admission to medical school* example, we can write down the fitted model equation from the `summary(med.glm)`:
-$$\log\left(\frac{p_i}{1-p_i}\right) =-19.207 + 5.454 \times \text{GPA}$$
 
-From the fitted equation, we can obtain the acceptance probability by solving for $p_i$:
+$$
+\log\left(\frac{p_i}{1-p_i}\right) =-19.207 + 5.454 \times \text{GPA}
+$$
+
+From the fitted equation, we can obtain the acceptance probability by solving for $p_i$. The messy way is to go directly:
 
 $$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times \text{GPA})} {1+ \exp(-19.207 + 5.454 \times \text{GPA})} $$
+
+Easier is to first work out the odds, then re-arrange that for $p_i$ with the same result.
 
 To predict the acceptance probability for an applicant we just need to substitute the specified GPA in the equation for $\hat{p}_i$:
 
@@ -73,11 +104,17 @@ $$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 3)} {1+ \exp(-19.207 + 5.454 \ti
 $$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 4)} {1+ \exp(-19.207 + 5.454 \times 4)} \Rightarrow \hat{p}_i = 0.93143$$
 
 
-Alternatively, we can use the `predict()` function in `R` as follows:
+Alternatively, we can use the `predict()` function in `R` as follows. The clever way to use `predict()` is to create a new simple data.frame containing data for three new students and then asking it to predict their responses. Or you can use predict three times.
 
 ```{r}
 #| label: r-medgpa-predict-values
 predict(med.glm, data.frame(GPA = c(2.5, 3, 4)), type = 'response')
+```
+
+(c)
+```{r}
+med.glm.more <- glm(Acceptance ~ GPA + MCAT + Apps, data = MedGPA, family = binomial)
+summary(med.glm.more)
 ```
 
 ::::
@@ -305,567 +342,4 @@ The predicted probability of damage is very high for all models.
 <!-- end of Answer -->
 
 
-
-## From Count Models
-
-```{r}
-#| label: r-cancer-load-data
-cancer <- read.table('https://github.com/UofGAnalyticsData/APM/raw/refs/heads/main/cancer.txt',
-                     header=TRUE)
-head(cancer)
-```
-
-```{r}
-#| label: r-cancer-glm-allvars
-epid1 <- glm(Y_all ~ pm10 + smoke + ethnic + log.price + easting + northing+offset(log(E_all)), family = poisson, data = cancer)
-summary(epid1)
-```
-
-:::{.question}
-
-## Question
-
-For the epidemiology cancer data. Interpret the `smoke` coefficient output from the `glm()` model, in the same was we just did for `pm10`.
-
-:::
-<!-- end of Task -->
-
-::::{.answer}
-
-We can either take $\exp(0.00335159)=1.00336$ and interpret it as the rate ratio associated with one unit increase in the percentage of people who smoke or we can choose another percentage, *e.g.* 10\%, so that we interpret $\exp(0.00335159*10)=1.034$ as the rate ratio associated with an increase of 10 units in the percentage of people who smoke, or we can go with the standard deviation of `smoke`
-
-```{r}
-#| label: r-cancer-sd-smoke
-sd(cancer$smoke)
-```
-
-which in this case turns out to be quite similar. A point estimate and an approximate confidence interval for the rate ratio associated with one standard deviation increase in the percentage of people who smoke can be obtained as follows:
-
-```{r}
-#| label: r-cancer-rate-ratio-smoke
-exp(0.00335159*sd(cancer$smoke)) # point estimate
-
-exp((0.00335159-1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI lower limit
-
-exp((0.00335159+1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI upper limit
-```
-
-::::
-<!-- end of Answer -->
-
-:::{.question}
-
-## Question
-
-Fit a [Poisson regression model]{.term} to the Galapagos data after log-transforming the explanatory variables. Does this model fit the data better than the original [Poisson model]{.term}? Are all the explanatory variables significant? 
-
-:::
-<!-- end of Task -->
-
-
-::::{.answer}
-
-We first take log of every variable with the exception of distance to Santa Cruz for which we have to take log of `Scruz` plus a small value because Santa Cruz has distance to Santa Cruz=0.
-
-```{r}
-#| label: r-gala-glm-logs-allvars
-gal4<- glm(Species ~ log(Area)+ log(Elevation) + log(Nearest) + log(Scruz+0.1) + log(Adjacent),family=poisson,data = gala)
-summary(gal4)
-```
-In the [Poisson model]{.term} there is a substantial reduction in [deviance]{.term} when using the log-transformed variables. Also log(`Elevation)` does not appear to be significant. We can drop the term for `Elevation` from the model:
-
-```{r}
-#| label: r-gala-glm-logs-reducedvars
-gal5 <- glm(Species ~ log(Area) + log(Nearest) + log(Scruz+0.1) + log(Adjacent),family=poisson, data = gala)
-summary(gal5)
-```
-
-Since there are still signs of [overdispersion]{.term}, we will choose to estimate the [dispersion parameter]{.term} and use it in a [quasi-Poisson model]{.term}:
-
-```{r}
-#| label: r-gala-glm-logs-quasisummary
-#dispersion parameter
-dp <- sum(residuals(gal5,type="pearson")^2)/gal5$df.res
-
-summary(gal5, dispersion=dp)
-
-```
-It looks like more terms can be dropped. When dropping terms, make sure you don't drop more than one at a time.
-
-```{r}
-#| label: r-gala-glm-logs-drop1
-drop1(gal5, test="F")
-```
-It looks like distance to Santa Cruz can be dropped.
-
-Repeating the process we see that distance to nearest neighbour can also be dropped and the final model is one with terms for the logarithm of the area of the island and the logarithm of the area of the adjacent island.
-
-::::
-<!-- end of Answer -->
-
-
-
-:::{.question}
-
-## Question
-
-In the epidemiology case study (start of "Models for count data" section), the [residual deviance]{.term} of the fitted model is quite high compared to the degrees of freedom. Could this be due to [overdispersion]{.term}? Fit a [quasi-Poisson model]{.term} and a [negative binomial model]{.term} and explore diagnostic plots to check if one of these might be more appropriate.
-
-:::
-<!-- end of Task -->
-
-
-::::{.answer}
-
-Start by fitting a [quasi-Poisson model]{.term} following the analysis steps for the Galapagos data:
-
-```{r}
-#| label: r-cancer-quasi-summary-and-phi
-
-epid2 <- glm(Y_all ~ pm10 + smoke + ethnic + log.price + easting + northing+offset(log(E_all)), family=quasipoisson(link = "log"), data = cancer)
-summary(epid2)
-
-# Calculate the dispersion parameter:
-pearson <- residuals(epid1, type = "pearson")
-sum(pearson^2)/epid1$df.residual
-```
-
-```{r}
-#| label: fig-cancer-poisson-vs-quasi
-#| fig-cap: "Plots of predicted counts against Standardised Pearson Residuals, for regular Poisson likelihood and modified Quasi-likelihood."
-#| fig-alt: "Around 10 points lie outside (-3,3) in the plot of Standardised Pearson Residuals for the regular likelihood, but for the Quasi-likelihood we now don't see such outliers, the distribution is far more believable Normal(0,1)."
-#| echo: false
-#| fig-pos: "H"
-
-# Compute predictions and standardized residuals
-pred1 <- predict(epid1, type = "response")
-resid1 <- rstandard(epid1, type = "pearson")
-
-pred2 <- predict(epid2, type = "response")
-resid2 <- rstandard(epid2, type = "pearson")
-
-# Prepare data for plot and order of plots
-plotdata <- rbind(
-  data.frame(pred = pred1, resid = resid1, Model = "Regular likelihood"),
-  data.frame(pred = pred2, resid = resid2, Model = "Quasi-likelihood")
-)
-
-plotdata$Model <- factor(plotdata$Model, levels = c("Regular likelihood", "Quasi-likelihood"))
-
-ggplot(plotdata, aes(x = pred, y = resid)) +
-  geom_point(shape = 1, alpha = 0.7, size = 3) +
-  geom_hline(yintercept = c(-3, -2, 0, 2, 3), linetype = "dotted", color = "red") +
-  facet_wrap(~Model) +
-  xlab("Predicted count") +
-  ylab("Standardized Pearson residuals") +
-  ylim(-5, 5) + theme(strip.text = element_text(size = 14))
-
-
-```
-
-We see that for the cancer data, just like for the Galapagos data, all of the [residuals]{.term} are contained within $\pm 3$ in the [quasi-Poisson model]{.term}, while quite a few are outside this range for the original [Poisson model]{.term}.
-
-Next we fit a [negative binomial model]{.term}:
-
-```{r, fig.height=4}
-#| label: r-cancer-nb-logs
-library(MASS)
-epid3 <- glm.nb(Y_all ~ pm10 + smoke + ethnic + log.price + easting + northing + offset(log(E_all)), data = cancer)
-summary(epid3)
-```
-
-To decide between the [quasi-Poisson]{.term} and the [negative binomial model]{.term}, we plot $(y_i-\hat{\mu}_i)^2$ versus $\hat{\mu}_i$ and compare the linear and quadratic fit to see which one of them fits better.
-
-<!--
-```{r}
-#| label: fig-r-XXX7
-#| fig-cap: "XXX"
-#| fig-alt: "XXX"
-# fig.height=4, fig.width=5
-
-# Plot of squared residuals v predicted
-res.sq <- residuals(epid1, type = "response")^2
-set1 <- data.frame(res.sq, mu.hat = epid1$fitted.values)
-
-fit.lin <- lm(formula = res.sq ~ mu.hat, data = set1)
-fit.quad <- lm(formula = res.sq ~ mu.hat + I(mu.hat^2), data = set1)
-summary(fit.quad)
-
-plot(set1$mu.hat, y = set1$res.sq, xlab = "Predicted count",
-     ylab = "Squared Residual")
-curve(expr = predict(fit.lin, newdata = data.frame(mu.hat = x), type = "response"),
-      col = "blue", add = TRUE, lty = "solid")
-curve(expr = predict(fit.quad, newdata = data.frame(mu.hat = x), type = "response"),
-      col = "red", add = TRUE, lty = "dashed")
-legend("topleft", legend = c("Linear", "Quadratic"), col = c("blue","red"),
-    lty = c("solid", "dashed"), bty = "n")
-```
--->
-
-```{r}
-#| label: fig-r-cancer-nb-versus-quasi-plot
-#| fig-cap: "Scatterplot of squared raw residuals against predicted counts. Overlaid are lines of best fit, linear and quadratic."
-#| fig-alt: "Both linear and quadratic lines of best fit are very similar. Points show a general upward trend, but at best a weak linear correlation. No good reason to prefer the more complex quadratic."
-#| echo: false
-#| fig-pos: "H"
-
-res.sq <- residuals(epid1, type = "response")^2
-set1 <- data.frame(res.sq, mu.hat = epid1$fitted.values)
-
-fit.lin <- lm(formula = res.sq ~ mu.hat, data = set1)
-fit.quad <- lm(formula = res.sq ~ mu.hat + I(mu.hat^2), data = set1)
-
-# Choose x-resolution and generate lines
-mu.seq <- seq(min(set1$mu.hat), max(set1$mu.hat), length.out = 12)
-pred.lin <- predict(fit.lin, newdata = data.frame(mu.hat = mu.seq))
-pred.quad <- predict(fit.quad, newdata = data.frame(mu.hat = mu.seq))
-
-pred.df <- data.frame(
-  mu.hat = rep(mu.seq, 2),
-  res.sq = c(pred.lin, pred.quad),
-  model = factor(rep(c("Linear", "Quadratic"), each = length(mu.seq)))
-)
-
-ggplot(set1, aes(x = mu.hat, y = res.sq)) +
-  geom_point(shape = 1) + 
-  geom_line(data = pred.df, aes(x = mu.hat, y = res.sq, color = model, linetype = model)) +
-  scale_linetype_manual(values = c("Linear" = "solid", "Quadratic" = "dashed")) +
-  scale_color_manual(values = c("Linear" = "blue", "Quadratic" = "red")) +
-  xlab("Predicted count") + ylab("Squared Residual") +
-  labs(color = NULL, linetype = NULL) +  # remove legend title
-  theme(
-    legend.position = c(0.05, 0.95),  # top-left inside plot
-    legend.justification = c(0, 1),   
-    legend.key.width = unit(2, "cm"),
-    legend.background = element_rect(  # box around legend
-      color = "black",
-      size = 0.2
-    )
-  )
-```
-
-
-The straight line fit (blue line) would indicate that the [quasi-Poisson model]{.term} should be preferred, and the quadratic fit (red line) would suggest using a [negative binomial model]{.term}.
-
-The quadratic coefficient in the above model has a $p$-value of 0.411 -- not significant. We don't have any evidence that the [negative binomial model]{.term} is better and we can probably go with either one.
-::::
-<!-- end of Answer -->
-
-## INSERT SOME QUESTION ABOUT ZIP OR SEPARATION**
-
-## A case study: Olympic medal predictions
-
-:::{.Example}
-
-### Predicting the total number of medals in the 2012 Olympics
-
-We wish to model the number of medals won by each country in the London Olympics in 2012 as a function of the country’s population and GDP per capita. The dataset `OlympicMedals2012.csv` contains this information for all the countries that won at least one medal in the 2012 Games. A ranking of countries based on the total medals won in the Olympics can be found at https://en.wikipedia.org/wiki/2012_Summer_Olympics_medal_table.
-We start by creating a variable for GDP per capita in 1000 US dollars and looking at some plots of the data.
-
-```{r}
-#| label: r-olympics-load-data
-library(gridExtra)
-olympics0 <- read.csv('https://github.com/UofGAnalyticsData/APM/raw/refs/heads/main/OlympicMedals2012.csv')
-olympics <- data.frame(country = olympics0$Country, medals = olympics0$Medals,
-                        population = olympics0$Population, 
-                        gold = olympics0$Gold.Medal,
-                        GDP = olympics0$GDP..US.Billion)
-olympics$GDPpercapita <- olympics$GDP * 10^6 / olympics$population
-head(olympics)
-```
-The wide range of values for both population and GDP per capita suggests log-transforming both explanatory variables. From the plots we see a positive association between log(population) and log(medals) and also between log(GDP per capita) and log(medals). 
-
-```{r}
-#| label: fig-r-XXX8
-#| fig-cap: "XXX"
-#| fig-alt: "XXX"
-#| fig-height: 3
-p1 <- ggplot(olympics, aes(x=log(population), y=log(medals))) +
-       geom_point()
-p2 <- ggplot(olympics, aes(x=log(GDPpercapita), y=log(medals))) +
-       geom_point()
-
-grid.arrange(p1, p2, nrow=1)
-```
-
-We start the analysis by fitting a [Poisson regression model]{.term}.
-
-```{r}
-#| label: r-olympics-glm-logs
-ol1 <- glm(medals ~ log(population) + log(GDPpercapita), 
-              family = poisson, data = olympics)
-summary(ol1)
-```
-
-Large population and high GDP per capita appear to contribute to Olympic success as indicated by the positive coefficients of both terms in the [Poisson model]{.term}. 
-:::
-<!-- end of Example -->
-
-
-<!-- old redacted content removed -->
-
-:::{.question}
-
-## Question
-
-The fit of the [Poisson model]{.term} is not particularly good (just look at the [deviance]{.term} of 547.5 on 82 degrees of freedom). Supposing that this is due to [overdispersion]{.term}, fit a [quasi-Poisson model]{.term} to adjust for it.
-
-:::
-<!-- end of Task -->
-
-
-::::{.answer}
-
-Estimate the [dispersion parameter]{.term}: 
-
-```{r}
-#| label: r-olympics-glm-dispersion
-X2 <- sum(resid(ol1, type = "pearson")^2)
-X2
-dp <- X2/ol1$df.res
-dp
-```
-
-Refit the model using the [dispersion parameter]{.term}:
-```{r}
-#| label: r-olympics-glm-disp-summary-drop1
-summary(ol1, dispersion= dp)
-
-drop1(ol1, type="F")
-```
-
-The parameter estimates (and fitted values) are the same, and although the standard errors change, both predictors are still highly significant.
-::::
-<!-- end of Answer -->
-
-
-
-
-
-:::{.question}
-
-## Question
-
-Fit a [negative binomial model]{.term} to the Olympics data.
-
-:::
-<!-- end of Task -->
-
-
-::::{.answer}
-
-A [negative binomial model]{.term} can be fit using
-
-```{r}
-#| label: r-olympics-nb-logs
-library(MASS)
-ol2 <- glm.nb(medals ~ log(population) + log(GDPpercapita), data=olympics)
-summary(ol2)
-```
-
-::::
-<!-- end of Answer -->
-
-
-
-:::{.question}
-
-## Question
-
-Examine the [residuals]{.term} from the [negative binomial model]{.term} and comment on any unusual observations.
-
-:::
-<!-- end of Task -->
-
-
-::::{.answer}
-
-
-Pearson residual plots for this model:
-```{r}
-#| label: fig-r-XXX9
-#| fig-cap: "XXX"
-#| fig-alt: "XXX"
-res <- resid(ol2, type = "pearson")
-d2 <- data.frame(res=resid(ol2, type = "pearson"))
-
-p3 <- ggplot(d2, aes(sample=res)) + geom_point(stat="qq") +
-    xlab("Theoretical quantiles") + ylab("Sample quantiles")
-
-p4 <- ggplot(d2, aes(x=predict(ol2, type="link"), y=res)) +
-        geom_point() + geom_hline(yintercept = 0) +
-        xlab("Linear predictor") + ylab("Pearson residuals")
-
-p5 <- ggplot(d2, aes(x=log(olympics$GDPpercapita), y=res)) +
-        geom_point() + xlab("log(GDP per capita)") +
-        ylab("Pearson residuals")
-
-p6 <- ggplot(d2, aes(x=log(olympics$population), y=res)) +
-        geom_point() + xlab("log(population)") +
-        ylab("Pearson residuals")
-
-grid.arrange(p3, p4, p5, p6, nrow = 2)
-```
-
-The normal probability plot shows some large positive [residuals]{.term}. No patterns are seen in the plot of [residuals]{.term} against the linear predictor, and there is no obvious nonlinear pattern in the plots of [residuals]{.term} against the explanatory variables. 
-
-We can also look at the cases where the model does not fit the data better (these correspond to large positive or negative [residuals]{.term}).
-```{r}
-#| label: r-olympics-nb-logs-pearson
-pres.n2 <- resid(ol2, type = "pearson")
-expmedals2 <- round(fitted(ol2)[abs(pres.n2) > 1], 2)
-cbind(olympics[abs(pres.n2) > 1, 1:2], expmedals2)
-```
-
-Here we see that the model does a poor job of predicting strong Olympic performances by countries such as the USA, UK and China, and not so strong performances by countries such as India and Indonesia.
- 
-::::
-<!-- end of Answer -->
-
-
-
-
-:::{.question}
-
-## Question
-
-Do you think that either the [Poisson]{.term} or the [negative binomial model]{.term} with log(GDP) and log(population) as predictors would do a good job predicting the total number of medals won by countries in 2012? Explain.
-
-:::
-<!-- end of Task -->
-
-
-::::{.answer}
-
-Clearly there is more to winning Olympic medals than just the country's population and GDP per capita. The large [residuals]{.term} from the [negative binomial model]{.term} show that this is the case. Adjusting for [overdispersion]{.term} does not improve predictive performance in general, and may not be as useful as including additional predictors in the model.
-::::
-<!-- end of Answer -->
-
-:::{.question}
-
-## Question
-
-In the Olympic medals example, suppose we also had data on the countries that participated in the 2012 Olympics but did not win any medals. What type of model would you consider for these data and why?
-
-:::
-<!-- end of Task -->
-
-
-::::{.answer}
-
-A [zero-inflated]{.term} Poisson or [negative binomial model]{.term} might be appropriate for simultaneously considering
-
-* the probability of a country winning a medal in the 2012 Olympics (using a logit model), and
-
-* the number of medals won (using a [Poisson]{.term} or [negative binomial model]{.term}).
-
-In practice such a model could be fit using function `zero.infl()` from `library(pscl)`.
-
-::::
-<!-- end of Answer -->
-
-## Simpson's paradox
-
-Simpson's paradox is a phenomenon in which associations get reversed when we look at aggregates. A very simple example of this is the following:
-
-Suppose that I get better grades than you in easy courses and I also get better grades than you in hard courses, and yet your GPA is higher than mine. How can this be? 
-
-I take lots of hard courses where I get mostly Cs and you get mostly Ds, and you take lots of easy courses where you get mostly Bs and I get mostly As. Even though I do better than you when we control for the difficulty of the course, your overall GPA will be higher.
-
-Here is another example with a contingency table.
-
-
-:::{.Example}
-
-### Death penalty in the US
-
-
-This dataset comes from *Categorical Data Analysis* by Alan Agresti. The $2 \times 2 \times 2$ table shows homicide cases in Florida over the period 1976-77. The defendant's race and victim's race, each having categories white or black, and whether there was a death penalty verdict (yes/no), was recorded. 
-
-
-+-------------------+---------------+-----+-----+-------------+
-| Defendant's Race  | Victim's Race | Yes | No  | Percentage  |
-+===================+===============+=====+=====+=============+
-|                   | White         | 19  | 132 | 12.6        |
-| White             +---------------+-----+-----+-------------+
-|                   | Black         | 0   | 9   | 0.0         |
-+-------------------+---------------+-----+-----+-------------+
-|                   | White         | 11  | 52  | 17.5        |
-| Black             +---------------+-----+-----+-------------+
-|                   | Black         | 6   | 97  | 5.8         |
-+-------------------+---------------+-----+-----+-------------+
-
-: Full original data of death penalty verdicts {#tbl-racedeath-alltable-grid tbl-colwidths="[15,15,15,15,15]" .striped .hover}
-
-The following is the marginal table obtained by summing the cell counts over the levels of victim's race.
-
-| Defendant's Race | Death Penalty: Yes | Death Penalty: No | Total   | Percentage (Yes) |
-|:-----------------|:------------------:|:-----------------:|:-------:|:----------------:|
-| White            | 19                 | 141               | 160     | 11.9             |
-| Black            | 17                 | 149               | 166     | 10.2             |
-| Total            | 36                 | 290               | 326     |                  |
-
-: Marginal summaries, ignoring victim's race {#tbl-deathrace-marginal tbl-colwidths="[20,20,20,10,15]" .striped .hover}
-
-About 12\% of white defendants and about 10\% of black defendants received the death penalty. Ignoring the victim's race, the percentage of "yes" death penalty verdicts was lower for blacks than for whites.
-
-However taking the victim's race into account, things look completely different: When the victim was white, the death penalty was imposed about 5 percentage points more often for black defendants than for white defendants. When the victim was black, the death penalty was imposed over 5 percentage points more often for black defendants than for white defendants. Controlling for the victim's race, the percentage of "yes" death penalty verdicts was higher for blacks than for whites.
-
-The phenomenon in which a pair of variables have marginal association of different direction from their partial associations is called *Simpson's paradox*. In the death penalty example, it arises because whites tended to kill whites, and killing a white person was more likely to result in the death penalty.
-:::
-<!-- end of Example -->
-
-:::{.question}
-
-## Question
-
-Fit a suitable loglinear model to the death penalty data and interpret it in terms of the associations between the variables.
-
-:::
-<!-- end of Task -->
-
-::::{.answer}
-
-
-Let $P$ stand for death penalty, $V$ for victim's race and $D$ for defendant's race. Create a data.frame with the data:
-```{r}
-#| label: r-racedeath-simpsons-table
-deathpenalty <- data.frame (D=rep(c("white","white","black","black"),2),
-                            V=rep(c("white","black"),4),
-                            P=c(rep("yes",4),rep("no",4)),
-                            freq = c(19,0,11,6,132,9,52,97))
-
-xtabs(freq ~ D + V+ P, data=deathpenalty)
-```
-
-Start from fitting the full independence model:
-
-```{r}
-#| label: r-racedeath-glm-additive
-glm(freq ~ D + V+ P, family=poisson, data=deathpenalty)
-```
-and try all models up to this fully saturated model:
-
-```{r}
-#| label: r-racedeath-glm-interactions
-glm(freq ~ D*V*P, family=poisson, data=deathpenalty)
-```
-
-| Terms in model | Deviance  | Degrees of Freedom |
-|:---------------|----------:|-------------------:|
-| [D,V,P]        | 137.93    | 4                  |
-| [D,VP]         | 131.68    | 3                  |
-| [V,DP]         | 137.71    | 3                  |
-| [P,DV]         | 8.13      | 3                  |
-| [DP,VP]        | 131.46    | 2                  |
-| [DP,DV]        | 7.91      | 2                  |
-| [VP,DV]        | 1.88      | 2                  |
-| [DP,VP,DV]     | 0.70      | 1                  |
-| [DVP]          | 0.00      | 0                  |
-
-: List of deviances and degrees of freedom for all possible models {#tbl-racedeath-deviances-allmodels .striped .hover}
-
-Notice that any model that does not include the term `D*V` has a large [deviance]{.term}. This suggests an important association between the defendant's race and the victim's race. Other than the [saturated model]{.term}, the two models that appear to fit the data well when we compare the [deviance]{.term} with a chi-squared distribution with the corresponding [degrees of freedom]{.term}, are $[VP,DV]$  and $[DP,VP,DV]$. The simpler model says that the death penalty verdict is independent of the defendant's race, given the victim's race. In the model with all two-way interactions, all pairs of variables are conditionally dependent.
-::::
-<!-- end of Answer -->
 
