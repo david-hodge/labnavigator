@@ -27,6 +27,13 @@ summary(epid1)
 
 For the epidemiology cancer data. Interpret the `smoke` coefficient output from the `glm()` model, in the same was we just did for `pm10`.
 
+**Actually ask specific questions**
+
+i.e.
+
+* Find rate ratio associated with one unit increase. Choose a better size increase too.
+* Find sd of smoke variable, and use to find the confidence interval (and point estimate) for the RR associated with a single sd movement in variable.
+
 :::
 <!-- end of Task -->
 
@@ -58,6 +65,12 @@ exp((0.00335159+1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI upper limit
 ## Question
 
 Fit a [Poisson regression model]{.term} to the Galapagos data after log-transforming the explanatory variables. Does this model fit the data better than the original [Poisson model]{.term}? Are all the explanatory variables significant? 
+
+**Get them to log transform all variables and fit GLM**. Comment on what error message they get.
+**How might they avoid this?** (log (x+0.11))
+Now fit with better log-transform, compare model fit with original Poisson model.
+Are all explanatory variables significant as before?
+
 
 :::
 <!-- end of Task -->
@@ -100,6 +113,8 @@ drop1(gal5, test="F")
 It looks like distance to Santa Cruz can be dropped.
 
 Repeating the process we see that distance to nearest neighbour can also be dropped and the final model is one with terms for the logarithm of the area of the island and the logarithm of the area of the adjacent island.
+
+**Can we look at AICs and use that?**
 
 ::::
 <!-- end of Answer -->
@@ -570,3 +585,13 @@ Notice that any model that does not include the term `D*V` has a large [deviance
 ::::
 <!-- end of Answer -->
 
+**way too much here**
+
+**smoke yes**
+**log transformed gal model yes**
+**log transformed gal model selection yes**
+**Olympic data NO**
+**Offer all the deviances from blackdeath** to interpretation.
+
+**Need to make sure some offset thing appears somewhere**
+**Need some interpretation question. Include inside galapagos**

@@ -342,4 +342,36 @@ The predicted probability of damage is very high for all models.
 <!-- end of Answer -->
 
 
+:::{.question}
 
+## Some calculation question
+
+Get them to calculate the log odds ratio associated with some categorical variable.
+Then same for odds ratio.
+Then get them to try if $p_1=0.2$ and if $p_1=0.5$, in both cases find $p^{\text{new}}_1$ under a change in covariate.
+* Do first for some binary covariate
+* Then do for a 10-unit change in some cts covariate.
+
+Calculate a confidence interval for an odds ratio above (maybe do the binary one).
+
+:::
+
+:::{.question}
+
+## Do some deviance-based goodness of fit test
+
+Fit binomial GLM wih `y ~ a + b`.
+Compare with `y ~ a`.
+With reference to deviances comment on results.
+Compare AICs and comment too.
+Limitations?
+
+:::
+
+:::{.question}
+
+## Plot interpretation
+
+Comment on this residuals plots from having fitted glm `y ~ a + b`.
+
+:::
