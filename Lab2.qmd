@@ -1,10 +1,7 @@
 ---
-title: "Labby 2"
+title: "Lab 2"
 output: html_document
 ---
-
-# Lab 2
-
 
 ## From Count Models
 
@@ -37,7 +34,8 @@ i.e.
 :::
 <!-- end of Task -->
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 We can either take $\exp(0.00335159)=1.00336$ and interpret it as the rate ratio associated with one unit increase in the percentage of people who smoke or we can choose another percentage, *e.g.* 10\%, so that we interpret $\exp(0.00335159*10)=1.034$ as the rate ratio associated with an increase of 10 units in the percentage of people who smoke, or we can go with the standard deviation of `smoke`
 
@@ -57,7 +55,8 @@ exp((0.00335159-1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI lower limit
 exp((0.00335159+1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI upper limit
 ```
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 :::{.question}
@@ -75,8 +74,8 @@ Are all explanatory variables significant as before?
 :::
 <!-- end of Task -->
 
-
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 We first take log of every variable with the exception of distance to Santa Cruz for which we have to take log of `Scruz` plus a small value because Santa Cruz has distance to Santa Cruz=0.
 
@@ -116,7 +115,8 @@ Repeating the process we see that distance to nearest neighbour can also be drop
 
 **Can we look at AICs and use that?**
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 
@@ -131,7 +131,8 @@ In the epidemiology case study (start of "Models for count data" section), the [
 <!-- end of Task -->
 
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 Start by fitting a [quasi-Poisson model]{.term} following the analysis steps for the Galapagos data:
 
@@ -152,15 +153,15 @@ sum(pearson^2)/epid1$df.residual
 #| fig-alt: "Around 10 points lie outside (-3,3) in the plot of Standardised Pearson Residuals for the regular likelihood, but for the Quasi-likelihood we now don't see such outliers, the distribution is far more believable Normal(0,1)."
 #| echo: false
 #| fig-pos: "H"
+library(ggplot2)
 
 # Compute predictions and standardized residuals
 pred1 <- predict(epid1, type = "response")
 resid1 <- rstandard(epid1, type = "pearson")
-
 pred2 <- predict(epid2, type = "response")
 resid2 <- rstandard(epid2, type = "pearson")
 
-# Prepare data for plot and order of plots
+# Prepare data for plot and order of plots (reg first)
 plotdata <- rbind(
   data.frame(pred = pred1, resid = resid1, Model = "Regular likelihood"),
   data.frame(pred = pred2, resid = resid2, Model = "Quasi-likelihood")
@@ -264,7 +265,8 @@ ggplot(set1, aes(x = mu.hat, y = res.sq)) +
 The straight line fit (blue line) would indicate that the [quasi-Poisson model]{.term} should be preferred, and the quadratic fit (red line) would suggest using a [negative binomial model]{.term}.
 
 The quadratic coefficient in the above model has a $p$-value of 0.411 -- not significant. We don't have any evidence that the [negative binomial model]{.term} is better and we can probably go with either one.
-::::
+:::
+:::
 <!-- end of Answer -->
 
 ## INSERT SOME QUESTION ABOUT ZIP OR SEPARATION**
@@ -330,7 +332,8 @@ The fit of the [Poisson model]{.term} is not particularly good (just look at the
 <!-- end of Task -->
 
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 Estimate the [dispersion parameter]{.term}: 
 
@@ -351,7 +354,8 @@ drop1(ol1, type="F")
 ```
 
 The parameter estimates (and fitted values) are the same, and although the standard errors change, both predictors are still highly significant.
-::::
+:::
+:::
 <!-- end of Answer -->
 
 
@@ -368,7 +372,8 @@ Fit a [negative binomial model]{.term} to the Olympics data.
 <!-- end of Task -->
 
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 A [negative binomial model]{.term} can be fit using
 
@@ -379,7 +384,8 @@ ol2 <- glm.nb(medals ~ log(population) + log(GDPpercapita), data=olympics)
 summary(ol2)
 ```
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 
@@ -394,7 +400,8 @@ Examine the [residuals]{.term} from the [negative binomial model]{.term} and com
 <!-- end of Task -->
 
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 
 Pearson residual plots for this model:
@@ -435,7 +442,8 @@ cbind(olympics[abs(pres.n2) > 1, 1:2], expmedals2)
 
 Here we see that the model does a poor job of predicting strong Olympic performances by countries such as the USA, UK and China, and not so strong performances by countries such as India and Indonesia.
  
-::::
+:::
+:::
 <!-- end of Answer -->
 
 
@@ -451,10 +459,12 @@ Do you think that either the [Poisson]{.term} or the [negative binomial model]{.
 <!-- end of Task -->
 
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 Clearly there is more to winning Olympic medals than just the country's population and GDP per capita. The large [residuals]{.term} from the [negative binomial model]{.term} show that this is the case. Adjusting for [overdispersion]{.term} does not improve predictive performance in general, and may not be as useful as including additional predictors in the model.
-::::
+:::
+:::
 <!-- end of Answer -->
 
 :::{.question}
@@ -467,7 +477,8 @@ In the Olympic medals example, suppose we also had data on the countries that pa
 <!-- end of Task -->
 
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 A [zero-inflated]{.term} Poisson or [negative binomial model]{.term} might be appropriate for simultaneously considering
 
@@ -477,7 +488,8 @@ A [zero-inflated]{.term} Poisson or [negative binomial model]{.term} might be ap
 
 In practice such a model could be fit using function `zero.infl()` from `library(pscl)`.
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 ## Simpson's paradox
@@ -540,7 +552,8 @@ Fit a suitable loglinear model to the death penalty data and interpret it in ter
 :::
 <!-- end of Task -->
 
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 
 Let $P$ stand for death penalty, $V$ for victim's race and $D$ for defendant's race. Create a data.frame with the data:
@@ -582,7 +595,8 @@ glm(freq ~ D*V*P, family=poisson, data=deathpenalty)
 : List of deviances and degrees of freedom for all possible models {#tbl-racedeath-deviances-allmodels .striped .hover}
 
 Notice that any model that does not include the term `D*V` has a large [deviance]{.term}. This suggests an important association between the defendant's race and the victim's race. Other than the [saturated model]{.term}, the two models that appear to fit the data well when we compare the [deviance]{.term} with a chi-squared distribution with the corresponding [degrees of freedom]{.term}, are $[VP,DV]$  and $[DP,VP,DV]$. The simpler model says that the death penalty verdict is independent of the defendant's race, given the victim's race. In the model with all two-way interactions, all pairs of variables are conditionally dependent.
-::::
+:::
+:::
 <!-- end of Answer -->
 
 **way too much here**

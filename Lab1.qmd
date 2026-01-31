@@ -1,21 +1,15 @@
 ---
-title: "Labby 1"
+title: "Lab 1"
 output: html_document
 ---
 
-# Lab 1
-
-Hello
-
-## From IntroToGLMs
+## From Introduction to GLMs
 
 :::{.question}
 
-## Question
-
 Formulate, by hand, the model used in the medical school admissions example as a GLM.
 
-You should identify:
+You should carefully identify:
 
 + The random component
 + The systematic component
@@ -25,9 +19,8 @@ You should identify:
 :::
 <!-- end of Task -->
 
-::::{.answer}
-
-## Answer
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 Random component: Let $Y_i=1$ if the $i$th applicant is accepted to medical school and $Y_i=0$ if not. We assume that the $Y_i$ are independent responses from $\text{Bin}(1,p_i)$, with $E(Y_i)=p_i$ for $i=1,\dots,55$.
 
@@ -39,12 +32,11 @@ Equation of the GLM: $$\log \left(\dfrac{p_i}{1-p_i} \right)=\beta_0+\beta_1 x_i
 
 Notation: $\beta_0$ will be the intercept and $\beta_1$ the coefficient on each student's GPA.
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 :::{.question}
-
-## Question
 
 Using this code (taken from the notes) to load the GPA dataset,
 
@@ -65,14 +57,13 @@ head(MedGPA)
 
     *Hint*: The `predict()` function will return values on the linear predictor scale unless you use the `type` parameter.
 
-(c) Select two or three further covariates from the data and fit a logistic regression with these additional covariates. Comment on your result.
+(c) Select two or three further covariates from the data and fit a logistic regression with these additional covariates. Make some preliminary comments on what you discover.. (Don't get too detailed, the exercise is mostly about fitting the model, not analysis)
 
 :::
 <!-- end of question -->
 
-::::{.answer}
-
-## Answer
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 (a) 
 ```{r}
@@ -83,16 +74,16 @@ med.glm <- glm(Acceptance ~ GPA, data = MedGPA, family = binomial)
 In the *GPA and admission to medical school* example, we can write down the fitted model equation from the `summary(med.glm)`:
 
 $$
-\log\left(\frac{p_i}{1-p_i}\right) =-19.207 + 5.454 \times \text{GPA}
+\log\left(\frac{p_i}{1-p_i}\right) =-19.207 + 5.454 \times \text{GPA}_i
 $$
 
 From the fitted equation, we can obtain the acceptance probability by solving for $p_i$. The messy way is to go directly:
 
-$$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times \text{GPA})} {1+ \exp(-19.207 + 5.454 \times \text{GPA})} $$
+$$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times \text{GPA}_i)} {1+ \exp(-19.207 + 5.454 \times \text{GPA}_i)} $$
 
 Easier is to first work out the odds, then re-arrange that for $p_i$ with the same result.
 
-To predict the acceptance probability for an applicant we just need to substitute the specified GPA in the equation for $\hat{p}_i$:
+To predict the acceptance probability for an applicant we just need to substitute that specified GPA score in the equation for $\hat{p}_i$:
 
 (i) GPA = 2.5:
 $$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 2.5)} {1+ \exp(-19.207 + 5.454 \times 2.5)} \Rightarrow \hat{p}_i = 0.00378 $$
@@ -104,7 +95,9 @@ $$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 3)} {1+ \exp(-19.207 + 5.454 \ti
 $$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 4)} {1+ \exp(-19.207 + 5.454 \times 4)} \Rightarrow \hat{p}_i = 0.93143$$
 
 
-Alternatively, we can use the `predict()` function in `R` as follows. The clever way to use `predict()` is to create a new simple data.frame containing data for three new students and then asking it to predict their responses. Or you can use predict three times.
+Alternatively, we can use the `predict()` function in `R`. You can manually call `predict` with each GPA value separately, or ... 
+
+The most efficient way to use `predict()` is to create a new simple data.frame containing data for all three new students and then asking it to predict all the responses simultaneously (by passing `predict` the data.frame). Or you can use predict three times.
 
 ```{r}
 #| label: r-medgpa-predict-values
@@ -117,10 +110,11 @@ med.glm.more <- glm(Acceptance ~ GPA + MCAT + Apps, data = MedGPA, family = bino
 summary(med.glm.more)
 ```
 
-::::
+I chose to add `MCAT` and `Apps`, and early evidence suggests that neither is as useful as `GPA` for model fit. Both do have positive coefficients, so presumably for these covariates having higher scores is *better*. However, a preliminary look at the standard errors (and p-values) I suspect there is not evidence to suggest either $\beta_2$ or $\beta_3$ are not zero.
+
+:::
+:::
 <!-- end of Answer -->
-
-
 
 ## From Logistic Models
 
@@ -133,15 +127,15 @@ yl$hear <- factor(yl$hear, levels = c("Laurel", "Yanny"))
 
 :::{.question}
 
-## Question
+
 
 Fit appropriate logistic regression models to explore if gender is related to whether people hear "Yanny" or "Laurel".
 
 :::
 <!-- end of Task -->
 
-
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 We can fit a model with just `gender` as a predictor:
 
@@ -162,7 +156,8 @@ summary(mod.yl3)
 ```
 In both cases we see that there is no significant gender effect.
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 **ADD QUESTIONS TO INTERPRET COEFFICIENTS FROM THE gender or age+gender model?**
@@ -218,15 +213,15 @@ p1
 
 :::{.question}
 
-## Question
+
 
 Fit a binomial regression model to the data, trying out the logit, probit and complementary log-log options for the link function. 
 
 :::
 <!-- end of Task -->
 
-
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 Logit link:
 
@@ -251,22 +246,23 @@ cmod <- glm(cbind(damage, 6-damage) ~ temp, family=binomial(link="cloglog"), dat
 summary(cmod)
 ```
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 
 
 :::{.question}
 
-## Question
+
 
 Superimpose the fitted probabilities from each of the three models on the above plot.
 
 :::
 <!-- end of Task -->
 
-
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 Here is some code for plotting the three fits.
 
@@ -291,20 +287,21 @@ p1.1
 
 ```
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 :::{.question}
 
-## Question
+
 
 Calculate a point estimate of the probability of damage to the O-rings when the temperature is 31 degrees Fahrenheit using each of the three models. 
 
 :::
 <!-- end of Task -->
 
-
-::::{.answer}
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 We can obtain the predicted probabilities using the model equation:
 
@@ -338,7 +335,8 @@ predict(cmod, newdata=data.frame(temp=31), type="response")
 
 The predicted probability of damage is very high for all models.
 
-::::
+:::
+:::
 <!-- end of Answer -->
 
 
