@@ -4,7 +4,7 @@ project:
     port: 8329
     
 website:
-  title: "Advanced Predictive Models - STATS1234"
+  title: "Advanced Predictive Models - STATS5098"
   search: false
   navbar:
     logo: apm.png

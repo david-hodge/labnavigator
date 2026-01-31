@@ -1,15 +1,19 @@
 ---
 title: "Advanced Predictive Models"
-format: html
+format:
+  html:
+    toc: false
 ---
 
 # Welcome
 
 This is the home page for the **Advanced Predictive Models** project.
 
-Use the left navbar to access the Lab exercises:
+Use the top navigation bar to access the different Labs:
 
 - [Lab1](Lab1.html)
+<!--
 - [Lab2](Lab2.html)
 - [Lab3](Lab3.html)
 - [Lab4](Lab4.html)
+-->
