@@ -197,7 +197,7 @@ summary(mod.yl4)
 :::
 <!-- end of Answer -->
 
-## The `birthweight` data set
+## The birthweight data set
 
 Load birthweight data. (Offer way to load it for Python people)
 
