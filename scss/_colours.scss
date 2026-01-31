@@ -34,3 +34,10 @@ $callout-color-caution: $rust;
 $callout-color-warning: $pillarbox;
 $callout-color-important: $cobalt;
 
+// Override figcaption colour using bootstrap colour to improve contrast
+
+figcaption, .table caption,
+.column-margin figcaption, .footnotes {
+  color: var(--bs-caption-color) !important;
+}
+

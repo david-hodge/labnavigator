@@ -15,12 +15,16 @@
   color: $active-link !important;
 }
 
-/* Active/current link */
-.navbar .nav-link.active, 
+/* Active link */
+.navbar .nav-link.active,
 .navbar .nav-link.show {
-  color: $active-link !important;
-  font-weight: bold;  
+  background-color: rgba(255, 255, 255, 0.2); 
+  color: $active-link;
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 0.5em 0.5em;
 }
+
 
 /* Logo size */
 .navbar-brand img {
