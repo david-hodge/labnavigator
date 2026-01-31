@@ -1,6 +1,8 @@
 project:
   type: website
-  
+  preview:
+    port: 8329
+    
 website:
   title: "Advanced Predictive Models - STATS1234"
   search: false
@@ -19,9 +21,8 @@ website:
 
 format:
   html:
+    css: counters.css
     theme:
       light: [cosmo, "scss/nav.scss", "scss/light.scss", "scss/questions.scss"]
       dark:  [darkly, "scss/nav.scss", "scss/dark.scss",  "scss/questions.scss"]
     respect-user-color-scheme: true
-    toc: true
-    toc-location: left
