@@ -14,15 +14,10 @@ body {
 
 /* Number answers */
 .answer::before {
-  counter-increment: answer;
-  content: "Answer " counter(answer) ": ";
+  /* counter-increment: answer;
+  content: "Answer " counter(answer) ": "; */
+  content: "Answer " counter(question) ": ";
   font-weight: bold;
   display: block;
   margin-bottom: 0.25em;
-}
-
-.question .answer {
-  border-bottom: 2px dotted #aaa;
-  padding-bottom: 0.5em;
-  margin-bottom: 1.5em;
 }

@@ -1,7 +1,28 @@
 ---
-title: "Lab 1"
+title: "Lab 1 -- Week 4"
 output: html_document
 ---
+
+```{r}
+#| label: r-ggplot-setup
+#| echo: false
+# Global plot theming, bw with darker gridlines
+# Copied from lecture notes
+library(ggplot2)
+theme_set(
+  theme_bw(base_size = 12) +
+  theme(
+    panel.grid.major = element_line(colour = "grey85"), # Darker grid lines
+    panel.grid.minor = element_line(colour = "grey90") # Darker grid lines
+  )
+)
+
+# Use global colour palette for discrete colours
+options(
+  ggplot2.discrete.colour = palette.colors(palette = "R4")
+  ) 
+update_geom_defaults("point", list(size = 2, color = "#005398"))
+```
 
 ## From Introduction to GLMs
 
@@ -118,6 +139,11 @@ I chose to add `MCAT` and `Apps`, and early evidence suggests that neither is as
 
 ## From Logistic Models
 
+
+:::{.question}
+
+First load the Yanny-Laurel data, and set the `hear` column as a factor, like this.
+
 ```{r}
 #| label: r-load-yl53
 yl<- read.csv('https://github.com/UofGAnalyticsData/APM/raw/refs/heads/main/yl53.csv')
@@ -125,11 +151,13 @@ head(yl)
 yl$hear <- factor(yl$hear, levels = c("Laurel", "Yanny"))
 ```
 
-:::{.question}
+(a) Fit appropriate logistic regression models to explore if `gender` is related to whether people hear "Yanny" or "Laurel".
 
+(b) In answering part (a) you will have tried a model with both `gender` and `age` as independence variables. In such a model comment upon the signs of the estimated coefficients. What do they tell you about men, versus women?
 
+(c) For each of the models you fitted, verify by hand the calculation determining the degrees of freedom reported by the software for the `residual deviance`.
 
-Fit appropriate logistic regression models to explore if gender is related to whether people hear "Yanny" or "Laurel".
+(d) Why do we not use deviance to evaluate such models?
 
 :::
 <!-- end of Task -->
@@ -156,16 +184,263 @@ summary(mod.yl3)
 ```
 In both cases we see that there is no significant gender effect.
 
+Even if we had suspected that some strange interaction which was masking an association, we see that even a four parameter model including an interaction term doesn't yield any significant parameters.
+
+```{r}
+#| label: r-yl-glm-gender-age-interaction-summary
+mod.yl4 <- glm(hear ~ gender*age, family=binomial, data=yl)
+summary(mod.yl4)
+
+```
+
 :::
 :::
 <!-- end of Answer -->
 
-**ADD QUESTIONS TO INTERPRET COEFFICIENTS FROM THE gender or age+gender model?**
+## The `birthweight` data set
+
+Load birthweight data. (Offer way to load it for Python people)
+
+```{r}
+library(MASS)
+data(birthwt)
+head(birthwt)
+```
+
+Here is a summary of three key variables from the data:
+
+* The variable `low` is binary, and states whether the baby's birthweight was classified as low (1=yes).
+* The variable `smoke` is binary, and states whether the baby's mother smoked during pregnancy (1=yes).
+* The variable `lwt`is continuous, and states the mother's weight at start of pregnancy, in pounds.
+
+We shall look at a model for the probability of having a low-weight baby, given smoking status and mother's starting weight.
+
+```{r}
+model1 <- glm(low ~ smoke + lwt, family = binomial, data = birthwt)
+summary(model1)
+```
+
+:::{.question}
+
+Above is the result of fitting a model for `low` with covariates `lwt` and `smoke`.
+
+(a) Write down the fitted model relating the linear predictor and link function.
+
+(b) What is the log-odds ratio associated with smoking?
+
+(c) Compute the odds ratio and interpret it.
+
+(d) Suppose that we know (from prior surveys) that a mother who weighs $120$ pounds and is a non-smoker has a 20% chance of having a low-weight baby. What does your odds ratio calculation predict for a mother who weighs $120$ and smokes?
+
+(e) *(Optional)* Repeat this same calculation, in case the case of starting probability of 10%.
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
 
 
-### Case Study: The Challenger Disaster
+(a) Linear predictor:
 
-*This case study is mostly tasks for you to get practice*
+$$
+\log\left(\frac{p}{1-p}\right) = 0.622 + 0.6767x_{i1} - 0.0133 x_{i2}
+$$
+where $x_{i1}$ is $1$ if person $i$ smoked, and $0$ otherwise; and where $x_{i2}$ is the mother's weight in pounds.
+
+(b) So the log-odds ratio for smoking is $0.6767$.
+
+(c) And by exponentiating the odds ratio is $\exp(0.6767) = 1.967$.
+
+Interpretation: at the same mother's weight, smokers have about 2 times higher odds of delivering a low-birth-weight baby than non-smokers. **Note this is odds, not probability**.
+
+(d) For the non-smoker at $120$ pounds, the probability given was $p_0 = 0.20$.  
+
+Then the corresponding odds are $\text{odds}_0 = \frac{p_0}{1 - p_0} = \frac{0.20}{0.80} = 0.25$.
+
+For a smoker of the same weight, multiply the odds by the odds ratio (OR = $1.967$):
+
+$$
+\text{odds}_1 = 1.967 \times 0.25 = 0.49.
+$$
+
+Convert back to a probability:
+
+$$
+p_1 = \frac{\text{odds}_1}{1 + \text{odds}_1} = \frac{0.49}{1.49} = 0.33
+$$
+
+Hence, the predicted probability is approximately $p_1 = 0.33$ (33%).  
+
+So while the odds doubled, the probability only went from $20\%$ to $33\%$.
+
+A $120$ pound smoker is predicted to have about a 33% chance of a low-birth-weight baby, compared with 20% for a non-smoker of the same weight.
+
+(e) *(Optional)* Repeating the calculation, $10\%$, initial odds $=1/9$. New odds $\approx 0.2186$. New probability $\approx 0.179$.
+
+So 10% becomes around 18%, when we change the smoking status from non-smoker to smoker.
+
+:::
+:::
+
+:::{.question}
+
+Using the same fitted model (with `lwt` and `smoke`).
+
+(a) Identify the mother's starting weight coefficient.
+
+(b) What is the odds ratio for a $10$ pound increase in mother's starting weight?
+
+(c) Identify the estimated standard error for the mother's starting weight.
+
+(d) Compute a 95 % confidence interval (CI) for the odds ratio per $10$ pound increase.
+
+(e) Interpret your interval from part (d).
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+(a) Identify the mother's starting weight coefficient
+
+The coefficient (log-odds change per 1 lb) is
+
+$$
+\hat\beta_{\text{lwt}} = -0.01332
+$$
+
+Interpretation: each additional pound reduces the log-odds of low birth weight by 0.01332.
+
+(b) Odds ratio for a 10-pound increase
+
+Log-odds change for $10$ pound:
+
+$$
+\Delta \eta = 10 \times \hat\beta_{\text{lwt}} = 10 \times (-0.01332) = -0.1332
+$$
+
+Corresponding odds ratio:
+
+$$
+\text{OR}_{10} = e^{\Delta \eta} = e^{-0.1332} \approx 0.8753
+$$
+
+So the odds are multiplied by about $0.875$, a $\approx 12.5\%$ reduction in odds.
+
+(c) Estimated standard error for mother's starting weight
+
+Standard error for a $1$ pound change:
+
+$$
+\mathrm{SE}(\hat\beta_{\text{lwt}}) = 0.00609
+$$
+
+For a $10$ pound change, the standard error scales:
+
+$$
+\mathrm{se}_{10} = 10 \times 0.00609 = 0.0609
+$$
+
+(d) 95% confidence interval (CI) for the odds ratio per $10$ pounds
+
+CI on log scale:
+
+$$
+\Delta \eta \pm 1.96 \times \mathrm{SE}_{10} = -0.1332 \pm 1.96 \times 0.0609
+$$
+
+Calculating the $\pm$ part:
+
+$$
+1.96 \times 0.0609 = 0.119484
+$$
+
+So for the log-odds, our confidence interval is:
+
+$$
+(-0.1332 - 0.119484,\; -0.1332 + 0.119484) = (-0.252564,\; -0.013836)
+$$
+
+Exponentiate to get odds ratio confidence interval:
+
+$$
+\text{OR}_{10}\text{ CI} = \big(e^{-0.252564},\; e^{-0.013836}\big) \approx (0.7768,\; 0.9863)
+$$
+
+(e) Interpretation of the interval
+
+The 95% CI for the $10$ pound odds ratio is approximately $(0.7768, 0.9863)$. Since the entire interval is below 1, this indicates that a $10$ pound increase in mother's weight is associated with a statistically significant reduction in the odds of low birth weight.  
+
+Practically, the odds decrease by between:
+
+- Lower bound: $1 - 0.7768 \approx 0.2232$ a 22% decrease  
+- Upper bound: $1 - 0.9863 \approx 0.0137$ a 1% decrease
+
+Hence we are 95% confident that a $10$ pound increase in mother's weight reduces the odds of low birth baby weight by roughly 1% to 22%.
+
+:::
+:::
+
+:::{.question}
+
+Continuing to work with the `birthweight` data.
+
+Consider two models:
+
+1. Null model: `low` is constant
+2. Full model: `low ~ lwt + smoke` using both `lwt` and `smoke`
+
+Here are the two fitted models and their output: (feel free to copy-paste)
+
+```{r}
+m0 <- glm(low ~ 1, family = binomial, data = birthwt)
+m3 <- glm(low ~ lwt + smoke, family = binomial, data = birthwt)
+summary(m0)
+summary(m3)
+```
+
+(a) Perform a deviance-based likelihood ratio test to compare the models.
+
+(b) Compare the AICs of the two models and state which model is preferred.
+
+(c) Comment on the results and possible limitations.
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+(a) In fact, the null model deviance is always calculated, so we see it multiple times.
+
+Our null deviance is $234.67$ with $188$ df, and our full model deviance is $224.34$ with $186$ df.
+
+Thus we have a likelihood ratio (deviance difference) of $10.331$ which is apparently drawn from $\chi^2_{2}$ in the case that the null model is correct. Comparing to $\chi^2_2(\alpha = 0.95)$ we see this is highly significant.
+
+Interpretation: The full model with `lwt + smoke` fits significantly better than the null model.
+
+(b) AIC comparison
+
+* AIC(null) = 238.7  
+* AIC(full) = 224.5  
+
+Lower AIC indicates better model → **full model preferred**.
+
+(c) Comments / limitations
+
+- Both deviance test and AIC indicate the full model is better.  
+- Limitations: assumes correct model specification and independent observations.  
+- Both may be terrible, we have just determined which we prefer.  
+- We didn't check any assumptions; residual diagnostics are still necessary.
+
+:::
+:::
+
+## The Challenger Disaster
+
+*This case study is mostly tasks for you to get practice and is taken directly from the lecture notes*
 
 In January 1986, the [space shuttle Challenger exploded shortly after launch](https://en.wikipedia.org/wiki/Space_Shuttle_Challenger_disaster). It was subsequently found that the rubber O-ring seals in the rocket boosters were susceptible to failing in low temperatures. At the time of the launch the temperature was 31 degrees Fahrenheit. Could the failure of the O-rings have been predicted?
 Data from the previous 23 missions shows some evidence of damage on some of the $6$ O-rings on each shuttle, as well as the temperature during the shuttle launch. The data is available from `library(faraway)` and is called `orings`. The first column of the data gives the temperature at launch in degrees F and the second column gives the number of damage incidents out of $6$ possible.
@@ -187,33 +462,21 @@ Model setup
 : the probability $p_i$ of individual damage to each O-ring means
 $$
 Y_i \overset{indep}\sim \text{Bin}(n,p_i)
-$$ with $g(p_i)=\beta_0 + \beta_1 x_i$, and here $n=6$.
+$$ with $g(p_i)=\beta_0 + \beta_1 x_i$, and here $n=6$ (there are always 6 O-rings each launch).
 
 Here is a plot of the data:
 
 ```{r}
 #| label: r-oring-data-plot
-#| echo: true
-p1<- ggplot(orings, aes(x=temp, y=damage/6)) + 
-     geom_point()+ xlim (c(25,85)) + ylim(c(0,1)) + 
-     xlab ("Temperature (F)") + ylab("Probability of damage")
-```
-
-```{r}
-#| label: fig-r-oring-data-plot-show
 #| fig-cap: "Scatterplot of the 18 datapoints, of temperature(F) against Proportion of rings damaged."
 #| fig-alt: "Scatterplot of raw data for the oring data (18 points). Showing 80% failure at around 52 degrees F, then values around 16% or 0% for most values above 55 degrees. More zeros at higher temps."
-#| echo: false
-#| 
-#p2 <- p1 + theme(panel.background = element_rect(fill = "transparent", colour = NA),
-#              #plot.background = element_rect(fill = "transparent", colour = NA),
-               #panel.border = element_rect(fill = NA, colour = "black"))
+p1 <- ggplot(orings, aes(x = temp, y = damage / 6)) +
+  geom_point() + xlim (c(25, 85)) + ylim(c(0, 1)) +
+  xlab ("Temperature (F)") + ylab("Proportion damaged")
 p1
 ```
 
 :::{.question}
-
-
 
 Fit a binomial regression model to the data, trying out the logit, probit and complementary log-log options for the link function. 
 
@@ -225,15 +488,14 @@ Fit a binomial regression model to the data, trying out the logit, probit and co
 
 Logit link:
 
-```{r, results= 'hide'}
+```{r}
 lmod <- glm(cbind(damage, 6-damage) ~ temp, family=binomial, data=orings) 
 summary(lmod)
 ```
 
 Probit link:
 
-```{r, results='hide'}
-
+```{r}
 pmod <- glm(cbind(damage, 6-damage) ~ temp, family=binomial(link="probit"), 
             data=orings)
 summary(pmod)
@@ -241,8 +503,10 @@ summary(pmod)
 
 Complementary log-log link:
 
-```{r, results= 'hide'}
-cmod <- glm(cbind(damage, 6-damage) ~ temp, family=binomial(link="cloglog"), data=orings) 
+```{r}
+cmod <- glm(cbind(damage, 6 - damage) ~ temp,
+            family = binomial(link = "cloglog"),
+            data = orings)
 summary(cmod)
 ```
 
@@ -258,6 +522,37 @@ summary(cmod)
 
 Superimpose the fitted probabilities from each of the three models on the above plot.
 
+Here's some code to help you get started.
+
+```{r}
+#| label: r-sample-multilink-help
+#| eval: false
+#| 
+x_grid <- data.frame(temp = seq(25, 85, length = 23))
+
+pred1 <- predict(your_logit_model, x_grid, type = "response")
+pred2 <- predict(your_probit_model, x_grid, type = "response")
+pred3 <- predict(your_loglog_model, x_grid, type = "response")
+predictions <- data.frame(logit = pred1,
+                          probit = pred2,
+                          cloglog = pred3,
+                          x_grid,
+                          orings)
+head(predictions)
+# Then in ggplot code like this:
+
+geom_point(aes(x = temp, y = damage / 6), size = 1)
+geom_line(aes(
+  x = px,
+  y = logit,
+  color = "Logit",
+  linetype = "solid"
+))
+
+```
+
+*Note that by cheekily adding exactly 23 points to our grid we can append the `orings` data into a single data.frame.*
+
 :::
 <!-- end of Task -->
 
@@ -270,20 +565,21 @@ Here is some code for plotting the three fits.
 #| label: fig-r-oring-temp-prob-logits
 #| fig-cap: "Fitted prediction curves for the three link functions, for the orings data."
 #| fig-alt: "Temperature (x) against Probability of damage (y), raw data and predictions from our three link functions. Inverted S-shaped curves, from 1 down to 0 for temperatures from 30F to 80F. All similar, none fit the plotted raw data points very well."
-#| fig-pos: "H" # Needed for echo: false to fix latex figure env bug
 
-pred1 <- predict(lmod, newdata=data.frame(temp=seq(25,85,le=23)), type="response")
-pred2 <- predict(pmod, newdata=data.frame(temp=seq(25,85,le=23)), type="response")
-pred3 <- predict(cmod, newdata=data.frame(temp=seq(25,85,le=23)), type="response")
-pred <- data.frame(logit = pred1, probit= pred2, cloglog=pred3, px = seq(25,85,le=23),orings)
-p1.1 <- ggplot(pred, aes(x=orings$temp, y= orings$damage/6)) +  
-        geom_point(size = 1)+ xlim (c(25,85)) + ylim(c(0,1)) + 
-        xlab ("Temperature (F)") + ylab("Probability of damage") +
-        geom_line(aes(x = px, y = logit, color = "Logit", linetype = "solid")) +
-        geom_line(aes(x = px, y = probit, color = "Probit", linetype = "dashed"))+
-        geom_line(aes(x = px, y = cloglog, color = "Complementary log-log", linetype = "dotted")) +
-        guides(colour = guide_legend("Link function"), linetype = "none")
-p1.1
+x_grid <- data.frame(temp=seq(25,85,length=23))
+pred1 <- predict(lmod, x_grid, type="response")
+pred2 <- predict(pmod, x_grid, type="response")
+pred3 <- predict(cmod, x_grid, type="response")
+pred <- data.frame(logit = pred1, probit = pred2, cloglog = pred3, px = seq(25,85,le=23), orings)
+head(pred)
+ggplot(pred) +  
+  geom_point(aes(x=temp, y=damage/6), size = 1) +
+  xlim (c(25,85)) + ylim(c(0,1)) + 
+  xlab ("Temperature (F)") + ylab("Probability of damage") +
+  geom_line(aes(x = px, y = logit, color = "Logit"), linetype = "solid") +
+  geom_line(aes(x = px, y = probit, color = "Probit"), linetype = "dashed")+
+  geom_line(aes(x = px, y = cloglog, color = "Complementary log-log"), linetype = "dotted") +
+  guides(colour = guide_legend("Link function"))
 
 ```
 
@@ -293,8 +589,6 @@ p1.1
 
 :::{.question}
 
-
-
 Calculate a point estimate of the probability of damage to the O-rings when the temperature is 31 degrees Fahrenheit using each of the three models. 
 
 :::
@@ -303,19 +597,21 @@ Calculate a point estimate of the probability of damage to the O-rings when the 
 :::{.content-visible when-profile="answers"}
 :::{.answer}
 
-We can obtain the predicted probabilities using the model equation:
+We can obtain the predicted probabilities using the model equation which we can obtain from the model fit summary estimates. Then substituting in $x_{\text{temp}}=31$ along with the intercept and coefficient. Note this will yield the value of the link function, which then needs inverting to reach $\hat{p}$.
+
+For the logistic model we have $\eta = 11.6630-0.2162*31$, then inverting:
 
 ```{r}
 exp(11.6630-0.2162*31)/(1+exp(11.6630-0.2162*31))
 ```
 
-We can get the same answer using the `predict()` function as follows: 
+If we're feeling lazy, we can get the same answer using the `predict()` function as follows: 
 
 ```{r}
 predict(lmod, newdata=data.frame(temp=31), type="response")
 ```
 
-Similarly, we can obtain the prediction for the probit model using the cumulative distribution function of a normal distribution:
+Similarly, we can obtain the prediction for the probit model using the cumulative distribution function of a normal distribution, and its model parameters:
 
 ```{r}
 pnorm(5.5915-0.1058*31) 
@@ -333,43 +629,10 @@ Finally for the complementary log-log model the predicted probability is
 predict(cmod, newdata=data.frame(temp=31), type="response")
 ```
 
+(Again we could have used the linear predictor and exponentiated twice to invert the log-log link.)
+
 The predicted probability of damage is very high for all models.
 
 :::
 :::
 <!-- end of Answer -->
-
-
-:::{.question}
-
-## Some calculation question
-
-Get them to calculate the log odds ratio associated with some categorical variable.
-Then same for odds ratio.
-Then get them to try if $p_1=0.2$ and if $p_1=0.5$, in both cases find $p^{\text{new}}_1$ under a change in covariate.
-* Do first for some binary covariate
-* Then do for a 10-unit change in some cts covariate.
-
-Calculate a confidence interval for an odds ratio above (maybe do the binary one).
-
-:::
-
-:::{.question}
-
-## Do some deviance-based goodness of fit test
-
-Fit binomial GLM wih `y ~ a + b`.
-Compare with `y ~ a`.
-With reference to deviances comment on results.
-Compare AICs and comment too.
-Limitations?
-
-:::
-
-:::{.question}
-
-## Plot interpretation
-
-Comment on this residuals plots from having fitted glm `y ~ a + b`.
-
-:::

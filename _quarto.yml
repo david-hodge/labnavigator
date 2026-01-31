@@ -12,12 +12,12 @@ website:
     right:
       - text: First Lab
         href: Lab1.qmd
-      - text: Second Lab
-        href: Lab2.qmd
-      - text: Third Lab
-        href: Lab3.qmd
-      - text: Fourth Lab
-        href: Lab4.qmd
+      #- text: Second Lab
+      #  href: Lab2.qmd
+      #- text: Third Lab
+      #  href: Lab3.qmd
+      #- text: Fourth Lab
+      #  href: Lab4.qmd
 
 format:
   html:
@@ -26,3 +26,5 @@ format:
       light: [cosmo, "scss/nav.scss", "scss/light.scss", "scss/questions.scss"]
       dark:  [darkly, "scss/nav.scss", "scss/dark.scss",  "scss/questions.scss"]
     respect-user-color-scheme: true
+    toc: true
+    toc-location: left
