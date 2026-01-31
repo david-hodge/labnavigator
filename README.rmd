@@ -1,0 +1,25 @@
+# Lab Navigator
+
+Currently designing with APM in mind. Will later strip out APM content.
+
+## Using profiles
+
+To make student and 'answers' version separately, have implemented quarto profiles.
+
+Normal version:
+```
+quarto render index.qmd
+```
+
+Answers included version:
+```
+quarto render index.qmd --profile answers
+```
+
+This is implemented via the following way to defining answers:
+```
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+```
+
+*Note*: First attempt, via including `.answer` in the outer block didn't work as `.content-visible` is implemented by hiding the entire outer div when it's shown, and thus the class answer div was lost.
