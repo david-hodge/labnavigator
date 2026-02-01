@@ -1,9 +1,35 @@
 ---
 title: "Lab 2"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
-## From Count Models
+## Epidemiology data revisited
+
+We start with a recap of the Epidemiology data (cancer rates) from the chapter on count models.
+
+```{r}
+#| label: r-ggplot-setup
+#| echo: false
+# Global plot theming, bw with darker gridlines
+# Copied from lecture notes
+library(ggplot2)
+theme_set(
+  theme_bw(base_size = 12) +
+  theme(
+    panel.grid.major = element_line(colour = "grey85"), # Darker grid lines
+    panel.grid.minor = element_line(colour = "grey90") # Darker grid lines
+  )
+)
+
+# Use global colour palette for discrete colours
+options(
+  ggplot2.discrete.colour = palette.colors(palette = "R4")
+  ) 
+update_geom_defaults("point", list(size = 2, color = "#005398"))
+```
+
 
 ```{r}
 #| label: r-cancer-load-data
@@ -20,16 +46,13 @@ summary(epid1)
 
 :::{.question}
 
-## Question
-
 For the epidemiology cancer data. Interpret the `smoke` coefficient output from the `glm()` model, in the same was we just did for `pm10`.
 
-**Actually ask specific questions**
+**Specific questions**
 
-i.e.
+(a) Find the rate ratio associated with a one unit increase. Then choose a more sensible size of increase and repeat.
 
-* Find rate ratio associated with one unit increase. Choose a better size increase too.
-* Find sd of smoke variable, and use to find the confidence interval (and point estimate) for the RR associated with a single sd movement in variable.
+(b) Find the standard deviation of the smoke variable, and use it to find the confidence interval (and point estimate) for the rate ratio associated with a single standard deviation movement in the variable.
 
 :::
 <!-- end of Task -->
@@ -37,7 +60,13 @@ i.e.
 :::{.content-visible when-profile="answers"}
 :::{.answer}
 
-We can either take $\exp(0.00335159)=1.00336$ and interpret it as the rate ratio associated with one unit increase in the percentage of people who smoke or we can choose another percentage, *e.g.* 10\%, so that we interpret $\exp(0.00335159*10)=1.034$ as the rate ratio associated with an increase of 10 units in the percentage of people who smoke, or we can go with the standard deviation of `smoke`
+(a) We can either take $\exp(0.00335159)=1.00336$ and interpret it as the rate ratio associated with one unit increase in the percentage of people who smoke or we can choose another percentage, *e.g.* $10\%$.
+
+Using a $10\%$ increase, we interpret $\exp(0.00335159*10)=1.034$ as the rate ratio associated with an increase of 10 units in the percentage of people who smoke.
+
+A common and less arbitrary choice would be to use the standard deviation of the variable in question.
+
+(b) The standard deviation of `smoke` is
 
 ```{r}
 #| label: r-cancer-sd-smoke
@@ -48,28 +77,41 @@ which in this case turns out to be quite similar. A point estimate and an approx
 
 ```{r}
 #| label: r-cancer-rate-ratio-smoke
-exp(0.00335159*sd(cancer$smoke)) # point estimate
+point_est <- exp(0.00335159*sd(cancer$smoke)) # point estimate
 
-exp((0.00335159-1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI lower limit
+lower <- exp((0.00335159-1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI lower limit
 
-exp((0.00335159+1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI upper limit
+upper <- exp((0.00335159+1.96*0.0009462959)*sd(cancer$smoke)) # approx 95% CI upper limit
+
+c(lower, point_est, upper)
 ```
+
+So we see a range from $1.4\%$ and $5.4\%$ with point estimate of $3.3\%$, note that even the lower bound is greater than $1$, so our model is suggesting that a standard deviation increase in `smoke` percentage is associated with an increase in cancer rates (at our 95% level).
 
 :::
 :::
 <!-- end of Answer -->
 
+## Galapagos data revisited
+
 :::{.question}
 
-## Question
+(a) Fit a [Poisson regression model]{.term} to the Galapagos data after log-transforming the explanatory variables. 
 
-Fit a [Poisson regression model]{.term} to the Galapagos data after log-transforming the explanatory variables. Does this model fit the data better than the original [Poisson model]{.term}? Are all the explanatory variables significant? 
+(b) Does this model fit the data better than the original Poisson model?
 
-**Get them to log transform all variables and fit GLM**. Comment on what error message they get.
-**How might they avoid this?** (log (x+0.11))
-Now fit with better log-transform, compare model fit with original Poisson model.
-Are all explanatory variables significant as before?
+(x) For this first model, interpret the $\log(Area)$ coefficient. Comment on your result in comparison to using Area as an offset.
 
+(c) Are all the explanatory variables significant? Investigate a little.
+
+(d) Calculate the dispersion parameter for your chosen Poisson model.
+
+(e) Investigate dropping covariates from the model based on adjusted p-values using the dispersion parameter.
+
+(f) Could we compare these quasi-poisson models with AIC values?
+
+
+*Hint:*: Log-transforming all the variables before you fit your GLM may require a little care with one of the variables.
 
 :::
 <!-- end of Task -->
@@ -77,7 +119,8 @@ Are all explanatory variables significant as before?
 :::{.content-visible when-profile="answers"}
 :::{.answer}
 
-We first take log of every variable with the exception of distance to Santa Cruz for which we have to take log of `Scruz` plus a small value because Santa Cruz has distance to Santa Cruz=0.
+(a) If we $\log$ all variables, there is an issue with the distance to Santa Cruz variable, as it contains a zero. The standard way to approach this is to just add a small constant to avoid a $\-infty$, e.g $\log(x+0.1)$ where $0.1$ is chosen to be small relative to the size of the variable. After inspecting `Scruz` we see that $0.1$ is fine.
+
 
 ```{r}
 #| label: r-gala-glm-logs-allvars
@@ -85,7 +128,28 @@ library(faraway)
 gal4<- glm(Species ~ log(Area)+ log(Elevation) + log(Nearest) + log(Scruz+0.1) + log(Adjacent),family=poisson,data = gala)
 summary(gal4)
 ```
-In the [Poisson model]{.term} there is a substantial reduction in [deviance]{.term} when using the log-transformed variables. Also log(`Elevation)` does not appear to be significant. We can drop the term for `Elevation` from the model:
+
+(b) In the [Poisson model]{.term} there is a substantial reduction in [deviance]{.term} when using the log-transformed variables. Suggesting a much better fit.
+
+(x) Our estimated coefficient is $\beta_1=0.348$, let us remind ourselves what are systematic component looked like
+
+$$
+\begin{aligned}
+\log(\mu_i) = & \beta_0 + \beta_1 \log(\text{Area}_i) + \beta_2 \log(\text{Elevation}_i) + \\
+& + \beta_3 \log(\text{Nearest}_i) + \beta_4 \log(\text{Scruz}_i+0.1) + \beta_5 \log(\text{Adjacent}_i)
+\end{aligned}
+$$
+
+Exponentiating both sides:
+$$
+\mu_i = e^{\beta_0} \, \text{Area}_i^{\beta_1} \, \text{Elevation}_i^{\beta_2} \times \text{(other terms)}
+$$
+
+So the best we seem to be able to say is that our mean $\mu_i$ scales like the $0.348$-th power of the island Area. Notice this is considerable less than 1.
+
+Had we used Area as an offset, this would essentially have been saying that we expect $\beta_1=1$ (i.e. double island area, twice as many species). Our model fit result is suggesting that using an offset for area would have been a bad idea. Intuitively this is reasonable as we're not counting numbers of animals, but different species. Were our dataset one which just counted raw animals then we may indeed have found $\beta_1 \approx 1$ was reasonable.
+
+(c) Also log(`Elevation)` does not appear to be significant. We can drop the term for `Elevation` from the model:
 
 ```{r}
 #| label: r-gala-glm-logs-reducedvars
@@ -93,7 +157,9 @@ gal5 <- glm(Species ~ log(Area) + log(Nearest) + log(Scruz+0.1) + log(Adjacent),
 summary(gal5)
 ```
 
-Since there are still signs of [overdispersion]{.term}, we will choose to estimate the [dispersion parameter]{.term} and use it in a [quasi-Poisson model]{.term}:
+AIC improved and the residual deviance change was marginal. So we are happier with this new model.
+
+(d) Since there are still signs of [overdispersion]{.term}, we will choose to estimate the [dispersion parameter]{.term} and use it in a [quasi-Poisson model]{.term}:
 
 ```{r}
 #| label: r-gala-glm-logs-quasisummary
@@ -103,6 +169,9 @@ dp <- sum(residuals(gal5,type="pearson")^2)/gal5$df.res
 summary(gal5, dispersion=dp)
 
 ```
+
+(e) Using the adjusted standard errors (under the quasipoisson adjustment) we can now look to drop insignificant covariates.
+
 It looks like more terms can be dropped. When dropping terms, make sure you don't drop more than one at a time.
 
 ```{r}
@@ -111,22 +180,29 @@ drop1(gal5, test="F")
 ```
 It looks like distance to Santa Cruz can be dropped.
 
-Repeating the process we see that distance to nearest neighbour can also be dropped and the final model is one with terms for the logarithm of the area of the island and the logarithm of the area of the adjacent island.
+Repeating the process we see that distance to nearest neighbour can also be dropped and the final model is one with only terms for the logarithm of the area of the island and the logarithm of the area of the adjacent island.
 
-**Can we look at AICs and use that?**
+
+(f) We notice the AIC values are worse for these final models. However, recall that AIC is a likelihood based statistic and the quasi-poisson model is not using a real likelihood. These AICs reported by R will be the AIC under the original Poisson model. Since we don't believe Poisson to be a good model (due to the observed overdispersion) we are not going to use the AIC values.
+
+*This whole approach is a little on heuristic side. In reality it would be good, with enough data, to think about approaches using cross-validation or test-train methodology to validate our model(s).* 
 
 :::
 :::
 <!-- end of Answer -->
 
-
+## Epidemiology deeper study
 
 :::{.question}
 
-## Question
+In the epidemiology case study (start of "Models for count data" section), the [residual deviance]{.term} of the fitted model is quite high compared to the degrees of freedom. So we will investigate overdispersion.
 
-In the epidemiology case study (start of "Models for count data" section), the [residual deviance]{.term} of the fitted model is quite high compared to the degrees of freedom. Could this be due to [overdispersion]{.term}? Fit a [quasi-Poisson model]{.term} and a [negative binomial model]{.term} and explore diagnostic plots to check if one of these might be more appropriate.
+Fit a [quasi-Poisson model]{.term} and a [negative binomial model]{.term} and explore diagnostic plots to check if one of these might be more appropriate.
 
+**Specifically**
+
+(a) After fitting a quasi-poisson, plot predicted counts against standardized Pearson residuals (for original and quadi- models).
+(b) Create a scatterplot of $\hat{\mu}_i$ against raw residuals squared ($\left(y_i-\hat{\mu}_i\right)^2)$ to investigate whether the relationship is linear or quadratic.
 :::
 <!-- end of Task -->
 
@@ -134,7 +210,7 @@ In the epidemiology case study (start of "Models for count data" section), the [
 :::{.content-visible when-profile="answers"}
 :::{.answer}
 
-Start by fitting a [quasi-Poisson model]{.term} following the analysis steps for the Galapagos data:
+(a) Start by fitting a [quasi-Poisson model]{.term} following the analysis steps for the Galapagos data:
 
 ```{r}
 #| label: r-cancer-quasi-summary-and-phi
@@ -191,33 +267,10 @@ epid3 <- glm.nb(Y_all ~ pm10 + smoke + ethnic + log.price + easting + northing +
 summary(epid3)
 ```
 
+(b) *This is similar to what is seen in lectures with two different examples*
+
 To decide between the [quasi-Poisson]{.term} and the [negative binomial model]{.term}, we plot $(y_i-\hat{\mu}_i)^2$ versus $\hat{\mu}_i$ and compare the linear and quadratic fit to see which one of them fits better.
 
-<!--
-```{r}
-#| label: fig-r-XXX7
-#| fig-cap: "XXX"
-#| fig-alt: "XXX"
-# fig.height=4, fig.width=5
-
-# Plot of squared residuals v predicted
-res.sq <- residuals(epid1, type = "response")^2
-set1 <- data.frame(res.sq, mu.hat = epid1$fitted.values)
-
-fit.lin <- lm(formula = res.sq ~ mu.hat, data = set1)
-fit.quad <- lm(formula = res.sq ~ mu.hat + I(mu.hat^2), data = set1)
-summary(fit.quad)
-
-plot(set1$mu.hat, y = set1$res.sq, xlab = "Predicted count",
-     ylab = "Squared Residual")
-curve(expr = predict(fit.lin, newdata = data.frame(mu.hat = x), type = "response"),
-      col = "blue", add = TRUE, lty = "solid")
-curve(expr = predict(fit.quad, newdata = data.frame(mu.hat = x), type = "response"),
-      col = "red", add = TRUE, lty = "dashed")
-legend("topleft", legend = c("Linear", "Quadratic"), col = c("blue","red"),
-    lty = c("solid", "dashed"), bty = "n")
-```
--->
 
 ```{r}
 #| label: fig-r-cancer-nb-versus-quasi-plot
@@ -256,7 +309,7 @@ ggplot(set1, aes(x = mu.hat, y = res.sq)) +
     legend.key.width = unit(2, "cm"),
     legend.background = element_rect(  # box around legend
       color = "black",
-      size = 0.2
+      linewidth = 0.2
     )
   )
 ```
@@ -264,237 +317,14 @@ ggplot(set1, aes(x = mu.hat, y = res.sq)) +
 
 The straight line fit (blue line) would indicate that the [quasi-Poisson model]{.term} should be preferred, and the quadratic fit (red line) would suggest using a [negative binomial model]{.term}.
 
-The quadratic coefficient in the above model has a $p$-value of 0.411 -- not significant. We don't have any evidence that the [negative binomial model]{.term} is better and we can probably go with either one.
-:::
-:::
-<!-- end of Answer -->
-
-## INSERT SOME QUESTION ABOUT ZIP OR SEPARATION**
-
-## A case study: Olympic medal predictions
-
-:::{.Example}
-
-### Predicting the total number of medals in the 2012 Olympics
-
-We wish to model the number of medals won by each country in the London Olympics in 2012 as a function of the country’s population and GDP per capita. The dataset `OlympicMedals2012.csv` contains this information for all the countries that won at least one medal in the 2012 Games. A ranking of countries based on the total medals won in the Olympics can be found at https://en.wikipedia.org/wiki/2012_Summer_Olympics_medal_table.
-We start by creating a variable for GDP per capita in 1000 US dollars and looking at some plots of the data.
-
-```{r}
-#| label: r-olympics-load-data
-library(gridExtra)
-olympics0 <- read.csv('https://github.com/UofGAnalyticsData/APM/raw/refs/heads/main/OlympicMedals2012.csv')
-olympics <- data.frame(country = olympics0$Country, medals = olympics0$Medals,
-                        population = olympics0$Population, 
-                        gold = olympics0$Gold.Medal,
-                        GDP = olympics0$GDP..US.Billion)
-olympics$GDPpercapita <- olympics$GDP * 10^6 / olympics$population
-head(olympics)
-```
-The wide range of values for both population and GDP per capita suggests log-transforming both explanatory variables. From the plots we see a positive association between log(population) and log(medals) and also between log(GDP per capita) and log(medals). 
-
-```{r}
-#| label: fig-r-XXX8
-#| fig-cap: "XXX"
-#| fig-alt: "XXX"
-#| fig-height: 3
-p1 <- ggplot(olympics, aes(x=log(population), y=log(medals))) +
-       geom_point()
-p2 <- ggplot(olympics, aes(x=log(GDPpercapita), y=log(medals))) +
-       geom_point()
-
-grid.arrange(p1, p2, nrow=1)
-```
-
-We start the analysis by fitting a [Poisson regression model]{.term}.
-
-```{r}
-#| label: r-olympics-glm-logs
-ol1 <- glm(medals ~ log(population) + log(GDPpercapita), 
-              family = poisson, data = olympics)
-summary(ol1)
-```
-
-Large population and high GDP per capita appear to contribute to Olympic success as indicated by the positive coefficients of both terms in the [Poisson model]{.term}. 
-:::
-<!-- end of Example -->
-
-
-<!-- old redacted content removed -->
-
-:::{.question}
-
-## Question
-
-The fit of the [Poisson model]{.term} is not particularly good (just look at the [deviance]{.term} of 547.5 on 82 degrees of freedom). Supposing that this is due to [overdispersion]{.term}, fit a [quasi-Poisson model]{.term} to adjust for it.
-
-:::
-<!-- end of Task -->
-
-
-:::{.content-visible when-profile="answers"}
-:::{.answer}
-
-Estimate the [dispersion parameter]{.term}: 
-
-```{r}
-#| label: r-olympics-glm-dispersion
-X2 <- sum(resid(ol1, type = "pearson")^2)
-X2
-dp <- X2/ol1$df.res
-dp
-```
-
-Refit the model using the [dispersion parameter]{.term}:
-```{r}
-#| label: r-olympics-glm-disp-summary-drop1
-summary(ol1, dispersion= dp)
-
-drop1(ol1, type="F")
-```
-
-The parameter estimates (and fitted values) are the same, and although the standard errors change, both predictors are still highly significant.
-:::
-:::
-<!-- end of Answer -->
-
-
-
-
-
-:::{.question}
-
-## Question
-
-Fit a [negative binomial model]{.term} to the Olympics data.
-
-:::
-<!-- end of Task -->
-
-
-:::{.content-visible when-profile="answers"}
-:::{.answer}
-
-A [negative binomial model]{.term} can be fit using
-
-```{r}
-#| label: r-olympics-nb-logs
-library(MASS)
-ol2 <- glm.nb(medals ~ log(population) + log(GDPpercapita), data=olympics)
-summary(ol2)
-```
-
-:::
-:::
-<!-- end of Answer -->
-
-
-
-:::{.question}
-
-## Question
-
-Examine the [residuals]{.term} from the [negative binomial model]{.term} and comment on any unusual observations.
-
-:::
-<!-- end of Task -->
-
-
-:::{.content-visible when-profile="answers"}
-:::{.answer}
-
-
-Pearson residual plots for this model:
-```{r}
-#| label: fig-r-XXX9
-#| fig-cap: "XXX"
-#| fig-alt: "XXX"
-res <- resid(ol2, type = "pearson")
-d2 <- data.frame(res=resid(ol2, type = "pearson"))
-
-p3 <- ggplot(d2, aes(sample=res)) + geom_point(stat="qq") +
-    xlab("Theoretical quantiles") + ylab("Sample quantiles")
-
-p4 <- ggplot(d2, aes(x=predict(ol2, type="link"), y=res)) +
-        geom_point() + geom_hline(yintercept = 0) +
-        xlab("Linear predictor") + ylab("Pearson residuals")
-
-p5 <- ggplot(d2, aes(x=log(olympics$GDPpercapita), y=res)) +
-        geom_point() + xlab("log(GDP per capita)") +
-        ylab("Pearson residuals")
-
-p6 <- ggplot(d2, aes(x=log(olympics$population), y=res)) +
-        geom_point() + xlab("log(population)") +
-        ylab("Pearson residuals")
-
-grid.arrange(p3, p4, p5, p6, nrow = 2)
-```
-
-The normal probability plot shows some large positive [residuals]{.term}. No patterns are seen in the plot of [residuals]{.term} against the linear predictor, and there is no obvious nonlinear pattern in the plots of [residuals]{.term} against the explanatory variables. 
-
-We can also look at the cases where the model does not fit the data better (these correspond to large positive or negative [residuals]{.term}).
-```{r}
-#| label: r-olympics-nb-logs-pearson
-pres.n2 <- resid(ol2, type = "pearson")
-expmedals2 <- round(fitted(ol2)[abs(pres.n2) > 1], 2)
-cbind(olympics[abs(pres.n2) > 1, 1:2], expmedals2)
-```
-
-Here we see that the model does a poor job of predicting strong Olympic performances by countries such as the USA, UK and China, and not so strong performances by countries such as India and Indonesia.
- 
-:::
-:::
-<!-- end of Answer -->
-
-
-
-
-:::{.question}
-
-## Question
-
-Do you think that either the [Poisson]{.term} or the [negative binomial model]{.term} with log(GDP) and log(population) as predictors would do a good job predicting the total number of medals won by countries in 2012? Explain.
-
-:::
-<!-- end of Task -->
-
-
-:::{.content-visible when-profile="answers"}
-:::{.answer}
-
-Clearly there is more to winning Olympic medals than just the country's population and GDP per capita. The large [residuals]{.term} from the [negative binomial model]{.term} show that this is the case. Adjusting for [overdispersion]{.term} does not improve predictive performance in general, and may not be as useful as including additional predictors in the model.
-:::
-:::
-<!-- end of Answer -->
-
-:::{.question}
-
-## Question
-
-In the Olympic medals example, suppose we also had data on the countries that participated in the 2012 Olympics but did not win any medals. What type of model would you consider for these data and why?
-
-:::
-<!-- end of Task -->
-
-
-:::{.content-visible when-profile="answers"}
-:::{.answer}
-
-A [zero-inflated]{.term} Poisson or [negative binomial model]{.term} might be appropriate for simultaneously considering
-
-* the probability of a country winning a medal in the 2012 Olympics (using a logit model), and
-
-* the number of medals won (using a [Poisson]{.term} or [negative binomial model]{.term}).
-
-In practice such a model could be fit using function `zero.infl()` from `library(pscl)`.
-
+The quadratic coefficient in the above model has a $p$-value of 0.411 -- not significant. We don't have any evidence that the [negative binomial model]{.term} is better and we can probably go with either one. Not a very conclusive investigation!
 :::
 :::
 <!-- end of Answer -->
 
 ## Simpson's paradox
 
-Simpson's paradox is a phenomenon in which associations get reversed when we look at aggregates. A very simple example of this is the following:
+Simpson's paradox is a phenomenon in which apparent associations get reversed when we look at aggregates. A very simple example of this is the following:
 
 Suppose that I get better grades than you in easy courses and I also get better grades than you in hard courses, and yet your GPA is higher than mine. How can this be? 
 
@@ -502,8 +332,6 @@ I take lots of hard courses where I get mostly Cs and you get mostly Ds, and you
 
 Here is another example with a contingency table.
 
-
-:::{.Example}
 
 ### Death penalty in the US
 
@@ -540,14 +368,22 @@ About 12\% of white defendants and about 10\% of black defendants received the d
 However taking the victim's race into account, things look completely different: When the victim was white, the death penalty was imposed about 5 percentage points more often for black defendants than for white defendants. When the victim was black, the death penalty was imposed over 5 percentage points more often for black defendants than for white defendants. Controlling for the victim's race, the percentage of "yes" death penalty verdicts was higher for blacks than for whites.
 
 The phenomenon in which a pair of variables have marginal association of different direction from their partial associations is called *Simpson's paradox*. In the death penalty example, it arises because whites tended to kill whites, and killing a white person was more likely to result in the death penalty.
-:::
-<!-- end of Example -->
 
 :::{.question}
 
-## Question
+Fit a variety of possible loglinear models to the death penalty data and interpret them in terms of the associations between the variables.
 
-Fit a suitable loglinear model to the death penalty data and interpret it in terms of the associations between the variables.
+*To get you started I recommmend you create the following data frame, then inspect it*
+
+```{r}
+#| label: r-deathrace-df-help
+#| 
+deathpenalty <- data.frame (D=rep(c("white","white","black","black"),2),
+                            V=rep(c("white","black"),4),
+                            P=c(rep("yes",4),rep("no",4)),
+                            freq = c(19,0,11,6,132,9,52,97))
+```
+*You can now fit models for `freq` in terms of `D`, `V` and `P`.*
 
 :::
 <!-- end of Task -->
@@ -599,13 +435,78 @@ Notice that any model that does not include the term `D*V` has a large [deviance
 :::
 <!-- end of Answer -->
 
-**way too much here**
+## Zero-inflated models
 
-**smoke yes**
-**log transformed gal model yes**
-**log transformed gal model selection yes**
-**Olympic data NO**
-**Offer all the deviances from blackdeath** to interpretation.
+:::{.question}
 
-**Need to make sure some offset thing appears somewhere**
-**Need some interpretation question. Include inside galapagos**
+Here is a dataset (from [UCLA](https://stats.idre.ucla.edu/stat/data/fish.csv)) which records how many fish visitors to a US National Park caught during their trip.
+
+We will look at a particular set of covariates:
+
+```{r}
+#| message: false
+library(dplyr)
+zinb <- read.csv("fish_catch.csv")
+zinb <- zinb %>% 
+  select(camper, persons, child, count) %>% 
+  tibble()
+zinb
+```
+
+* `camper` which tells us whether they came in a camper/caravan;
+* `persons` the number of people in the group;
+* `child` the number of children in the group;
+* `count` the number of fish caught.
+
+Some groups went fishing, and others did not, but we don't have this in our data. Thus we have two sources of zeros in `count`.
+
+We will use just `persons` in a logistic model to create structural zeros (they didn't go fishing).
+
+Then to model the number of fish caught we will use `camper` and `child`.
+
+```{r}
+library(pscl)
+m1 <- zeroinfl(count ~ child + camper | persons, data = zinb)
+summary(m1)
+```
+
+Look at this output and (with the help of some searching online if you wish) comment on what has been done by the `zeroinfl` function.
+
+You should look to include:
+
+* Why are there two tables?
+* What signs are the estimates?
+* What do the linear components (and this systematic components) look like for the two parts of the model?
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+This is a zero-inflated Poisson model (ZIP).
+
+* Count model (Poisson) – predicts the fish count if the observation is not a structural zero.
+
+* Zero-inflation model (Logistic) – predicts the probability of a structural zero (observation must be zero).
+
+| Model                       | Coefficient | Sign | Comment                                                                            |
+| --------------------------- | ----------- | ---- | ---------------------------------------------------------------------------------- |
+| Count (Poisson, log link)   | child       | -    | More children present means lower predicted fish catch                             |
+| Count (Poisson, log link)   | camper      | +    | Camper/caravan present means increased predicted fish catch                        |
+| Zero (Binomial, logit link) | persons     | -    | More people in group decreases probability of a structrural zero                   |
+
+
+**Count model** (Poisson, log link)
+$$
+\eta_{\text{count}} = 1.598 - 1.043 \cdot \text{child} + 0.834 \cdot \text{camper}
+$$
+
+**Zero-inflation model** (Binomial, logit link)
+$$
+\eta_{\text{zero}} = 1.297 - 0.564 \cdot \text{persons}
+$$
+These are the linear components. The first is $\log(\mu_i)$ and the latter is $\log\left(\frac{p_i}{1-p_i}\right)$.
+
+:::
+:::

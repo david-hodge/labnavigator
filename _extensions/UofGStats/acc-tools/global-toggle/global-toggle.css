@@ -1,0 +1,75 @@
+/* code-toggle.css */
+
+/* Global toggle header - always visible */
+#global-toggle {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid #ddd;
+  backdrop-filter: blur(6px);
+}
+
+body.quarto-dark #global-toggle {
+  background: rgba(0, 0, 0, 0.75); /* dark semi-transparent background */
+  border: 2px solid #777;
+}
+
+/* Buttons inside the toggle */
+#global-toggle button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 0.35rem;
+  background: #006ee5;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Hover effect for buttons */
+#global-toggle button:hover {
+  background: #0056b3;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+
+/* Focus outline for accessibility */
+#global-toggle button:focus {
+  outline: 3px solid #80bdff;
+  outline-offset: 2px;
+  background: #0056b3;
+}
+
+/* Active state when button is pressed */
+#global-toggle button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* To keep for screen-readers even if hidden due to extreme zoom */
+.hidden-zoom {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Don't show this when printing */
+@media print {
+  #global-toggle {
+    display: none !important;
+  }
+}
+

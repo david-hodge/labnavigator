@@ -1,0 +1,14 @@
+/*-- scss:defaults --*/
+
+@import 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&display=swap';
+@import 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap';
+
+$font-family: "Open Sans", sans-serif;
+$link-color: #670067;
+$caption-text-color: #555555;
+
+:root {
+  --font-family: #{$font-family};
+  --link-color: #{$link-color};
+  --caption-text-color: #{$caption-text-color};
+}

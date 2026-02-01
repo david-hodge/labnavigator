@@ -1,0 +1,47 @@
+/* Figure caption are way too pale grey, bad contrast on white background */
+figcaption, .table caption,
+.column-margin figcaption {
+  color: var(--bs-caption-color);
+}
+
+/*
+body {
+  border: 5px solid red !important;
+}
+*/   
+
+/* Other items:
+
+// Contrast issues: (may need prefers-dark versions too)
+
+.blockquote {
+  color: #22a !important;
+}
+
+figcaption, .table caption  {
+  color: #22a;
+}
+
+// Colour of text in margin was poor contrast
+.column-margin { 
+  color: var(--bs-body-color);
+}
+
+.column-margin figcaption, .table caption  {
+  color: #22a;
+}
+
+// The credit bottom right footer
+.nav-footer-right { 
+  color: var(--bs-body-color);
+}
+
+// 'Code' heading is too grey, needs darker colour
+details.code-fold > summary {
+  color: var(--bs-body-color);
+}
+
+// toc numbers too low contrast, just make them match the text
+.header-section-number {
+  color: var(--bs-body-color) !important;
+}

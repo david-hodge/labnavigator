@@ -3,6 +3,14 @@ project:
   preview:
     port: 8329
     
+filters:
+  - acc-tools
+  
+acc-tools:
+  global-toggle: false
+  code-blocks: true
+  acc-style: true
+
 website:
   title: "Advanced Predictive Models - STATS5098"
   search: false
