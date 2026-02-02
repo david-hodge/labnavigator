@@ -199,7 +199,7 @@ summary(mod.yl4)
 
 ## The birthweight data set
 
-Load birthweight data. (Offer way to load it for Python people)
+Load birthweight data. (One source of the data is here https://github.com/neurospin/pystatsml/tree/master/datasets called birthwt.csv it's also on Moodle.)
 
 ```{r}
 library(MASS)

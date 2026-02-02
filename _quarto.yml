@@ -3,6 +3,9 @@ project:
   preview:
     port: 8329
     
+execute:
+  warning: false
+    
 filters:
   - acc-tools
   
