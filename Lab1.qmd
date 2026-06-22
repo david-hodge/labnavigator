@@ -24,6 +24,16 @@ options(
 update_geom_defaults("point", list(size = 2, color = "#005398"))
 ```
 
+:::{.content-visible when-profile="answers"}
+<div style="font-style: italic; border: 2px dashed green; border-radius: 10px; padding: 12px; margin: 30px;">
+This is the sample solutions document. There may sometimes be other ways to answer questions so you should treat this as a good guide rather than an oracle.
+
+In this course you have a do-at-home quiz in the week following each Lab, so this solutions document will be released soon after the lab to allow you to use it, if you wish, when attempting the quiz. Additional feedback can always be added later to this document.
+
+If you spot any typos please don't hesistate to let me know.
+</div>
+:::
+
 ## From Introduction to GLMs
 
 :::{.question}

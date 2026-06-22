@@ -5,4 +5,8 @@ output: html_document
 
 # Lab 3
 
+:::{.content-visible when-profile="answers"}
+<div style="font-style: italic; border: 2px dashed green; border-radius: 10px; padding: 12px; margin: 30px;">
+This is the sample solutions document. There may sometimes be other ways to answer questions so you should treat this as a good guide rather than an oracle.
+
 Content will appear here.
