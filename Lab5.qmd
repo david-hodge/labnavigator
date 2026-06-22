@@ -1,0 +1,648 @@
+---
+title: "Lab 5 -- Week 5"
+output: html_document
+---
+
+```{r}
+#| label: r-ggplot-setup
+#| echo: false
+# Global plot theming, bw with darker gridlines
+# Copied from lecture notes
+library(ggplot2)
+theme_set(
+  theme_bw(base_size = 12) +
+  theme(
+    panel.grid.major = element_line(colour = "grey85"), # Darker grid lines
+    panel.grid.minor = element_line(colour = "grey90") # Darker grid lines
+  )
+)
+
+# Use global colour palette for discrete colours
+options(
+  ggplot2.discrete.colour = palette.colors(palette = "R4")
+  ) 
+update_geom_defaults("point", list(size = 2, color = "#005398"))
+```
+
+:::{.content-visible when-profile="answers"}
+<div style="font-style: italic; border: 2px dashed green; border-radius: 10px; padding: 12px; margin: 30px;">
+This is the sample solutions document. There may sometimes be other ways to answer questions so you should treat this as a good guide rather than an oracle.
+
+In this course you have a do-at-home quiz in the week following each Lab, so this solutions document will be released soon after the lab to allow you to use it, if you wish, when attempting the quiz. Additional feedback can always be added later to this document.
+
+If you spot any typos please don't hesistate to let me know.
+</div>
+:::
+
+## From Introduction to GLMs
+
+:::{.question}
+
+Formulate, by hand, the model used in the medical school admissions example as a GLM.
+
+You should carefully identify:
+
++ The random component
++ The systematic component
++ The link function
++ Identify your named coefficients with data covariates
+
+:::
+<!-- end of Task -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+Random component: Let $Y_i=1$ if the $i$th applicant is accepted to medical school and $Y_i=0$ if not. We assume that the $Y_i$ are independent responses from $\text{Bin}(1,p_i)$, with $E(Y_i)=p_i$ for $i=1,\dots,55$.
+
+Systematic component: $\beta_0+\beta_1 x_i$ where $x_i$ is the $i$th applicant's GPA and $\beta_0$ and $\beta_1$ are parameters to be estimated.
+
+Link function: $g(p_i)=\log \left(\dfrac{p_i}{1-p_i} \right)$ (logit link)
+
+Equation of the GLM: $$\log \left(\dfrac{p_i}{1-p_i} \right)=\beta_0+\beta_1 x_i.$$ 
+
+Notation: $\beta_0$ will be the intercept and $\beta_1$ the coefficient on each student's GPA.
+
+:::
+:::
+<!-- end of Answer -->
+
+:::{.question}
+
+Using this code (taken from the notes) to load the GPA dataset,
+
+```{r}
+library(Stat2Data)
+library(ggplot2)
+data(MedGPA)
+head(MedGPA)
+```
+
+(a) Type the code to fit a logistic regression model to this data to predict `Acceptance` from just `GPA`, saving the result into a variable called `med.gpa`
+(b) Predict the acceptance probability for an applicant with a GPA of
+    (i) 2.5 
+    (ii) 3 
+    (iii) 4 
+
+    First do this "by hand" using the regression equation, then in R using the `predict()` function. To use `predict()` a helpful shortcut can be to create a simple data.frame with three students in.
+
+    *Hint*: The `predict()` function will return values on the linear predictor scale unless you use the `type` parameter.
+
+(c) Select two or three further covariates from the data and fit a logistic regression with these additional covariates. Make some preliminary comments on what you discover.. (Don't get too detailed, the exercise is mostly about fitting the model, not analysis)
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+(a) 
+```{r}
+med.glm <- glm(Acceptance ~ GPA, data = MedGPA, family = binomial)
+```
+
+(b)
+In the *GPA and admission to medical school* example, we can write down the fitted model equation from the `summary(med.glm)`:
+
+$$
+\log\left(\frac{p_i}{1-p_i}\right) =-19.207 + 5.454 \times \text{GPA}_i
+$$
+
+From the fitted equation, we can obtain the acceptance probability by solving for $p_i$. The messy way is to go directly:
+
+$$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times \text{GPA}_i)} {1+ \exp(-19.207 + 5.454 \times \text{GPA}_i)} $$
+
+Easier is to first work out the odds, then re-arrange that for $p_i$ with the same result.
+
+To predict the acceptance probability for an applicant we just need to substitute that specified GPA score in the equation for $\hat{p}_i$:
+
+(i) GPA = 2.5:
+$$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 2.5)} {1+ \exp(-19.207 + 5.454 \times 2.5)} \Rightarrow \hat{p}_i = 0.00378 $$
+
+(ii) GPA = 3:
+$$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 3)} {1+ \exp(-19.207 + 5.454 \times 3)} \Rightarrow \hat{p}_i = 0.05494$$
+
+(iii) GPA = 4:
+$$\hat{p}_i = \frac{\exp(-19.207 + 5.454 \times 4)} {1+ \exp(-19.207 + 5.454 \times 4)} \Rightarrow \hat{p}_i = 0.93143$$
+
+
+Alternatively, we can use the `predict()` function in `R`. You can manually call `predict` with each GPA value separately, or ... 
+
+The most efficient way to use `predict()` is to create a new simple data.frame containing data for all three new students and then asking it to predict all the responses simultaneously (by passing `predict` the data.frame). Or you can use predict three times.
+
+```{r}
+#| label: r-medgpa-predict-values
+predict(med.glm, data.frame(GPA = c(2.5, 3, 4)), type = 'response')
+```
+
+(c)
+```{r}
+med.glm.more <- glm(Acceptance ~ GPA + MCAT + Apps, data = MedGPA, family = binomial)
+summary(med.glm.more)
+```
+
+I chose to add `MCAT` and `Apps`, and early evidence suggests that neither is as useful as `GPA` for model fit. Both do have positive coefficients, so presumably for these covariates having higher scores is *better*. However, a preliminary look at the standard errors (and p-values) I suspect there is not evidence to suggest either $\beta_2$ or $\beta_3$ are not zero.
+
+:::
+:::
+<!-- end of Answer -->
+
+## From Logistic Models
+
+
+:::{.question}
+
+First load the Yanny-Laurel data, and set the `hear` column as a factor, like this.
+
+```{r}
+#| label: r-load-yl53
+yl<- read.csv('https://github.com/UofGAnalyticsData/APM/raw/refs/heads/main/yl53.csv')
+head(yl)
+yl$hear <- factor(yl$hear, levels = c("Laurel", "Yanny"))
+```
+
+(a) Fit appropriate logistic regression models to explore if `gender` is related to whether people hear "Yanny" or "Laurel".
+
+(b) In answering part (a) you will have tried a model with both `gender` and `age` as independence variables. In such a model comment upon the signs of the estimated coefficients. What do they tell you about men, versus women?
+
+(c) For each of the models you fitted, verify by hand the calculation determining the degrees of freedom reported by the software for the `residual deviance`.
+
+(d) Why do we not use deviance to evaluate such models?
+
+:::
+<!-- end of Task -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+We can fit a model with just `gender` as a predictor:
+
+```{r}
+#| label: r-yl-glm-gender-summary
+mod.yl2 <- glm(hear ~ gender, family=binomial, data=yl)
+summary(mod.yl2)
+
+```
+
+or we can add `gender` to the model with `age`:
+
+```{r}
+#| label: r-yl-glm-gender-age-summary
+mod.yl3 <- glm(hear ~ gender+age, family=binomial, data=yl)
+summary(mod.yl3)
+
+```
+In both cases we see that there is no significant gender effect.
+
+Even if we had suspected that some strange interaction which was masking an association, we see that even a four parameter model including an interaction term doesn't yield any significant parameters.
+
+```{r}
+#| label: r-yl-glm-gender-age-interaction-summary
+mod.yl4 <- glm(hear ~ gender*age, family=binomial, data=yl)
+summary(mod.yl4)
+
+```
+
+:::
+:::
+<!-- end of Answer -->
+
+## The birthweight data set
+
+Load birthweight data. (One source of the data is here https://github.com/neurospin/pystatsml/tree/master/datasets called birthwt.csv it's also on Moodle.)
+
+```{r}
+library(MASS)
+data(birthwt)
+head(birthwt)
+```
+
+Here is a summary of three key variables from the data:
+
+* The variable `low` is binary, and states whether the baby's birthweight was classified as low (1=yes).
+* The variable `smoke` is binary, and states whether the baby's mother smoked during pregnancy (1=yes).
+* The variable `lwt`is continuous, and states the mother's weight at start of pregnancy, in pounds.
+
+We shall look at a model for the probability of having a low-weight baby, given smoking status and mother's starting weight.
+
+```{r}
+model1 <- glm(low ~ smoke + lwt, family = binomial, data = birthwt)
+summary(model1)
+```
+
+:::{.question}
+
+Above is the result of fitting a model for `low` with covariates `lwt` and `smoke`.
+
+(a) Write down the fitted model relating the linear predictor and link function.
+
+(b) What is the log-odds ratio associated with smoking?
+
+(c) Compute the odds ratio and interpret it.
+
+(d) Suppose that we know (from prior surveys) that a mother who weighs $120$ pounds and is a non-smoker has a 20% chance of having a low-weight baby. What does your odds ratio calculation predict for a mother who weighs $120$ and smokes?
+
+(e) *(Optional)* Repeat this same calculation, in case the case of starting probability of 10%.
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+
+(a) Linear predictor:
+
+$$
+\log\left(\frac{p}{1-p}\right) = 0.622 + 0.6767x_{i1} - 0.0133 x_{i2}
+$$
+where $x_{i1}$ is $1$ if person $i$ smoked, and $0$ otherwise; and where $x_{i2}$ is the mother's weight in pounds.
+
+(b) So the log-odds ratio for smoking is $0.6767$.
+
+(c) And by exponentiating the odds ratio is $\exp(0.6767) = 1.967$.
+
+Interpretation: at the same mother's weight, smokers have about 2 times higher odds of delivering a low-birth-weight baby than non-smokers. **Note this is odds, not probability**.
+
+(d) For the non-smoker at $120$ pounds, the probability given was $p_0 = 0.20$.  
+
+Then the corresponding odds are $\text{odds}_0 = \frac{p_0}{1 - p_0} = \frac{0.20}{0.80} = 0.25$.
+
+For a smoker of the same weight, multiply the odds by the odds ratio (OR = $1.967$):
+
+$$
+\text{odds}_1 = 1.967 \times 0.25 = 0.49.
+$$
+
+Convert back to a probability:
+
+$$
+p_1 = \frac{\text{odds}_1}{1 + \text{odds}_1} = \frac{0.49}{1.49} = 0.33
+$$
+
+Hence, the predicted probability is approximately $p_1 = 0.33$ (33%).  
+
+So while the odds doubled, the probability only went from $20\%$ to $33\%$.
+
+A $120$ pound smoker is predicted to have about a 33% chance of a low-birth-weight baby, compared with 20% for a non-smoker of the same weight.
+
+(e) *(Optional)* Repeating the calculation, $10\%$, initial odds $=1/9$. New odds $\approx 0.2186$. New probability $\approx 0.179$.
+
+So 10% becomes around 18%, when we change the smoking status from non-smoker to smoker.
+
+:::
+:::
+
+:::{.question}
+
+Using the same fitted model (with `lwt` and `smoke`).
+
+(a) Identify the mother's starting weight coefficient.
+
+(b) What is the odds ratio for a $10$ pound increase in mother's starting weight?
+
+(c) Identify the estimated standard error for the mother's starting weight.
+
+(d) Compute a 95 % confidence interval (CI) for the odds ratio per $10$ pound increase.
+
+(e) Interpret your interval from part (d).
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+(a) Identify the mother's starting weight coefficient
+
+The coefficient (log-odds change per 1 lb) is
+
+$$
+\hat\beta_{\text{lwt}} = -0.01332
+$$
+
+Interpretation: each additional pound reduces the log-odds of low birth weight by 0.01332.
+
+(b) Odds ratio for a 10-pound increase
+
+Log-odds change for $10$ pound:
+
+$$
+\Delta \eta = 10 \times \hat\beta_{\text{lwt}} = 10 \times (-0.01332) = -0.1332
+$$
+
+Corresponding odds ratio:
+
+$$
+\text{OR}_{10} = e^{\Delta \eta} = e^{-0.1332} \approx 0.8753
+$$
+
+So the odds are multiplied by about $0.875$, a $\approx 12.5\%$ reduction in odds.
+
+(c) Estimated standard error for mother's starting weight
+
+Standard error for a $1$ pound change:
+
+$$
+\mathrm{SE}(\hat\beta_{\text{lwt}}) = 0.00609
+$$
+
+For a $10$ pound change, the standard error scales:
+
+$$
+\mathrm{se}_{10} = 10 \times 0.00609 = 0.0609
+$$
+
+(d) 95% confidence interval (CI) for the odds ratio per $10$ pounds
+
+CI on log scale:
+
+$$
+\Delta \eta \pm 1.96 \times \mathrm{SE}_{10} = -0.1332 \pm 1.96 \times 0.0609
+$$
+
+Calculating the $\pm$ part:
+
+$$
+1.96 \times 0.0609 = 0.119484
+$$
+
+So for the log-odds, our confidence interval is:
+
+$$
+(-0.1332 - 0.119484,\; -0.1332 + 0.119484) = (-0.252564,\; -0.013836)
+$$
+
+Exponentiate to get odds ratio confidence interval:
+
+$$
+\text{OR}_{10}\text{ CI} = \big(e^{-0.252564},\; e^{-0.013836}\big) \approx (0.7768,\; 0.9863)
+$$
+
+(e) Interpretation of the interval
+
+The 95% CI for the $10$ pound odds ratio is approximately $(0.7768, 0.9863)$. Since the entire interval is below 1, this indicates that a $10$ pound increase in mother's weight is associated with a statistically significant reduction in the odds of low birth weight.  
+
+Practically, the odds decrease by between:
+
+- Lower bound: $1 - 0.7768 \approx 0.2232$ a 22% decrease  
+- Upper bound: $1 - 0.9863 \approx 0.0137$ a 1% decrease
+
+Hence we are 95% confident that a $10$ pound increase in mother's weight reduces the odds of low birth baby weight by roughly 1% to 22%.
+
+:::
+:::
+
+:::{.question}
+
+Continuing to work with the `birthweight` data.
+
+Consider two models:
+
+1. Null model: `low` is constant
+2. Full model: `low ~ lwt + smoke` using both `lwt` and `smoke`
+
+Here are the two fitted models and their output: (feel free to copy-paste)
+
+```{r}
+m0 <- glm(low ~ 1, family = binomial, data = birthwt)
+m3 <- glm(low ~ lwt + smoke, family = binomial, data = birthwt)
+summary(m0)
+summary(m3)
+```
+
+(a) Perform a deviance-based likelihood ratio test to compare the models.
+
+(b) Compare the AICs of the two models and state which model is preferred.
+
+(c) Comment on the results and possible limitations.
+
+:::
+<!-- end of question -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+(a) In fact, the null model deviance is always calculated, so we see it multiple times.
+
+Our null deviance is $234.67$ with $188$ df, and our full model deviance is $224.34$ with $186$ df.
+
+Thus we have a likelihood ratio (deviance difference) of $10.331$ which is apparently drawn from $\chi^2_{2}$ in the case that the null model is correct. Comparing to $\chi^2_2(\alpha = 0.95)$ we see this is highly significant.
+
+Interpretation: The full model with `lwt + smoke` fits significantly better than the null model.
+
+(b) AIC comparison
+
+* AIC(null) = 238.7  
+* AIC(full) = 224.5  
+
+Lower AIC indicates better model → **full model preferred**.
+
+(c) Comments / limitations
+
+- Both deviance test and AIC indicate the full model is better.  
+- Limitations: assumes correct model specification and independent observations.  
+- Both may be terrible, we have just determined which we prefer.  
+- We didn't check any assumptions; residual diagnostics are still necessary.
+
+:::
+:::
+
+## The Challenger Disaster
+
+*This case study is mostly tasks for you to get practice and is taken directly from the lecture notes*
+
+In January 1986, the [space shuttle Challenger exploded shortly after launch](https://en.wikipedia.org/wiki/Space_Shuttle_Challenger_disaster). It was subsequently found that the rubber O-ring seals in the rocket boosters were susceptible to failing in low temperatures. At the time of the launch the temperature was 31 degrees Fahrenheit. Could the failure of the O-rings have been predicted?
+Data from the previous 23 missions shows some evidence of damage on some of the $6$ O-rings on each shuttle, as well as the temperature during the shuttle launch. The data is available from `library(faraway)` and is called `orings`. The first column of the data gives the temperature at launch in degrees F and the second column gives the number of damage incidents out of $6$ possible.
+
+Here are the first few rows of the data:
+
+```{r}
+library(faraway)
+head(orings)
+```
+
+Predictor variable
+: $x_i$ the temperature (in degrees F) during launch for the $i$th mission, $i=1,\dots,23$. 
+
+Response variable
+: $y_i$ is the number of damaged O-rings (out of 6 total).
+  
+Model setup
+: the probability $p_i$ of individual damage to each O-ring means
+$$
+Y_i \overset{indep}\sim \text{Bin}(n,p_i)
+$$ with $g(p_i)=\beta_0 + \beta_1 x_i$, and here $n=6$ (there are always 6 O-rings each launch).
+
+Here is a plot of the data:
+
+```{r}
+#| label: r-oring-data-plot
+#| fig-cap: "Scatterplot of the 18 datapoints, of temperature(F) against Proportion of rings damaged."
+#| fig-alt: "Scatterplot of raw data for the oring data (18 points). Showing 80% failure at around 52 degrees F, then values around 16% or 0% for most values above 55 degrees. More zeros at higher temps."
+p1 <- ggplot(orings, aes(x = temp, y = damage / 6)) +
+  geom_point() + xlim (c(25, 85)) + ylim(c(0, 1)) +
+  xlab ("Temperature (F)") + ylab("Proportion damaged")
+p1
+```
+
+:::{.question}
+
+Fit a binomial regression model to the data, trying out the logit, probit and complementary log-log options for the link function. 
+
+:::
+<!-- end of Task -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+Logit link:
+
+```{r}
+lmod <- glm(cbind(damage, 6-damage) ~ temp, family=binomial, data=orings) 
+summary(lmod)
+```
+
+Probit link:
+
+```{r}
+pmod <- glm(cbind(damage, 6-damage) ~ temp, family=binomial(link="probit"), 
+            data=orings)
+summary(pmod)
+```
+
+Complementary log-log link:
+
+```{r}
+cmod <- glm(cbind(damage, 6 - damage) ~ temp,
+            family = binomial(link = "cloglog"),
+            data = orings)
+summary(cmod)
+```
+
+:::
+:::
+<!-- end of Answer -->
+
+
+
+:::{.question}
+
+
+
+Superimpose the fitted probabilities from each of the three models on the above plot.
+
+Here's some code to help you get started.
+
+```{r}
+#| label: r-sample-multilink-help
+#| eval: false
+#| 
+x_grid <- data.frame(temp = seq(25, 85, length = 23))
+
+pred1 <- predict(your_logit_model, x_grid, type = "response")
+pred2 <- predict(your_probit_model, x_grid, type = "response")
+pred3 <- predict(your_loglog_model, x_grid, type = "response")
+predictions <- data.frame(logit = pred1,
+                          probit = pred2,
+                          cloglog = pred3,
+                          x_grid,
+                          orings)
+head(predictions)
+# Then in ggplot code like this:
+
+geom_point(aes(x = temp, y = damage / 6), size = 1)
+geom_line(aes(
+  x = px,
+  y = logit,
+  color = "Logit",
+  linetype = "solid"
+))
+
+```
+
+*Note that by cheekily adding exactly 23 points to our grid we can append the `orings` data into a single data.frame.*
+
+:::
+<!-- end of Task -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+Here is some code for plotting the three fits.
+
+```{r}
+#| label: fig-r-oring-temp-prob-logits
+#| fig-cap: "Fitted prediction curves for the three link functions, for the orings data."
+#| fig-alt: "Temperature (x) against Probability of damage (y), raw data and predictions from our three link functions. Inverted S-shaped curves, from 1 down to 0 for temperatures from 30F to 80F. All similar, none fit the plotted raw data points very well."
+
+x_grid <- data.frame(temp=seq(25,85,length=23))
+pred1 <- predict(lmod, x_grid, type="response")
+pred2 <- predict(pmod, x_grid, type="response")
+pred3 <- predict(cmod, x_grid, type="response")
+pred <- data.frame(logit = pred1, probit = pred2, cloglog = pred3, px = seq(25,85,le=23), orings)
+head(pred)
+ggplot(pred) +  
+  geom_point(aes(x=temp, y=damage/6), size = 1) +
+  xlim (c(25,85)) + ylim(c(0,1)) + 
+  xlab ("Temperature (F)") + ylab("Probability of damage") +
+  geom_line(aes(x = px, y = logit, color = "Logit"), linetype = "solid") +
+  geom_line(aes(x = px, y = probit, color = "Probit"), linetype = "dashed")+
+  geom_line(aes(x = px, y = cloglog, color = "Complementary log-log"), linetype = "dotted") +
+  guides(colour = guide_legend("Link function"))
+
+```
+
+:::
+:::
+<!-- end of Answer -->
+
+:::{.question}
+
+Calculate a point estimate of the probability of damage to the O-rings when the temperature is 31 degrees Fahrenheit using each of the three models. 
+
+:::
+<!-- end of Task -->
+
+:::{.content-visible when-profile="answers"}
+:::{.answer}
+
+We can obtain the predicted probabilities using the model equation which we can obtain from the model fit summary estimates. Then substituting in $x_{\text{temp}}=31$ along with the intercept and coefficient. Note this will yield the value of the link function, which then needs inverting to reach $\hat{p}$.
+
+For the logistic model we have $\eta = 11.6630-0.2162*31$, then inverting:
+
+```{r}
+exp(11.6630-0.2162*31)/(1+exp(11.6630-0.2162*31))
+```
+
+If we're feeling lazy, we can get the same answer using the `predict()` function as follows: 
+
+```{r}
+predict(lmod, newdata=data.frame(temp=31), type="response")
+```
+
+Similarly, we can obtain the prediction for the probit model using the cumulative distribution function of a normal distribution, and its model parameters:
+
+```{r}
+pnorm(5.5915-0.1058*31) 
+```
+
+or by using the `predict()` function:
+
+```{r}
+predict(pmod, newdata=data.frame(temp=31), type="response")
+```
+
+Finally for the complementary log-log model the predicted probability is
+
+```{r}
+predict(cmod, newdata=data.frame(temp=31), type="response")
+```
+
+(Again we could have used the linear predictor and exponentiated twice to invert the log-log link.)
+
+The predicted probability of damage is very high for all models.
+
+:::
+:::
+<!-- end of Answer -->
