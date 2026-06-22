@@ -2,6 +2,8 @@
 
 @use "colours" as uog; //UoG colour branding
 
+$pumpkin:       #ffb948;
+
 /*-- scss:defaults --*/
 
 // Dark mode theme
@@ -23,3 +25,18 @@ $link-hover-color: $secondary !default;
 
 // Borders
 $border-color: #333 !default;
+
+// terms
+span.term {
+  color: $pumpkin;
+  font-weight: 500;
+}
+
+// ensure Code fold is not too dark in dark mode
+details.code-fold > summary {
+  color: uog.$pumpkin;
+}
+
+.blockquote > p {
+  color: uog.$sunshine;
+}

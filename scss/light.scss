@@ -11,3 +11,17 @@ $secondary: uog.$university-blue;
 
 $active-link: #eeeeff;
 
+span.term {
+  color: darkred;
+  font-weight: 500;
+}
+
+// ensure Code fold is not too grey in dark mode
+details.code-fold > summary {
+  color: uog.$university-blue;
+}
+
+// Ensure color of blockquote is dark enough
+.blockquote > p {
+  color: uog.$lavender;
+}
